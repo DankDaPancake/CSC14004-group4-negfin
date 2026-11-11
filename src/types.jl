@@ -37,3 +37,11 @@ struct MiningSummary
     n_frequent_items::Int
     n_patterns::Int
 end
+
+struct CLIOptions
+    input::String
+    output::String
+    minsup::Rational{BigInt}
+    variant::Symbol
+    stats::Union{Nothing,String}
+end
