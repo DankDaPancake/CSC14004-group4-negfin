@@ -2,6 +2,8 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. Thực hiện tuần tự trong phiên hiện tại; chỉ dùng subagent khi người dùng yêu cầu.
 
+**Execution:** Baseline đã được triển khai ngày 12/11/2026; test local và đối chiếu 5 CSDL full đã chạy. Xem README và docs/validation/correctness.toml. Việc thành viên xác nhận trực tiếp và các sản phẩm ngoài Baseline chưa được coi là hoàn tất.
+
 **Goal:** Dựng negFIN Baseline đúng paper bằng Julia, đọc/ghi SPMF, chạy qua CLI và kiểm chứng itemset/support bằng tính tay, vét cạn và SPMF trên 5 CSDL.
 
 **Architecture:** Tách đọc/ghi, chuẩn hóa thứ tự item, BMC-tree, phép toán NegNodeset và duyệt tìm kiếm. Bitmap dùng `BigInt`; tập kết quả được phát qua callback để CLI ghi dần, không bắt buộc giữ mọi itemset trong RAM. Promotion là thành phần của Baseline; tối ưu bổ sung được thực hiện ở giai đoạn khác sau khi đo điểm nghẽn.
@@ -91,8 +93,8 @@ Dùng `test/` để khớp lệnh đề bài `julia --project test/runtests.jl`;
 - Produces `read_spmf(io::IO)::TransactionDB`, `parse_minsup(text::AbstractString)::Rational{BigInt}`, `min_support(r::Rational{BigInt}, n::Int)::Int`, `write_itemset(io::IO, items::Vector{Int}, support::Int)::Nothing`.
 - Test runner không có ARGS chạy các test local đã tạo; ARGS lọc nhóm test như `io`, `tree`, `mining`. Nhóm `spmf` chỉ chạy khi được gọi tường minh.
 
-- [ ] Chuẩn bị Julia >= 1.9, ghi phiên bản cụ thể; khởi tạo Git tại root này khi bắt đầu thực thi, không tạo repo bao trùm thư mục tài liệu môn học.
-- [ ] Viết test trước implementation:
+- [x] Chuẩn bị Julia >= 1.9, ghi phiên bản cụ thể; khởi tạo Git tại root này khi bắt đầu thực thi, không tạo repo bao trùm thư mục tài liệu môn học.
+- [x] Viết test trước implementation:
 
 ```julia
 @test read_spmf(IOBuffer("# note\n% note\n@FILETYPE=x\n\n3 1 1\n3 1 1\n")) == [[1, 3], [1, 3]]
@@ -105,12 +107,12 @@ Dùng `test/` để khớp lệnh đề bài `julia --project test/runtests.jl`;
 @test_throws ArgumentError read_spmf(IOBuffer("1 -2\n"))
 ```
 
-- [ ] Chạy `julia --project=. test/runtests.jl io`; xác nhận FAIL do API chưa được cài, không phải do thiếu Julia.
-- [ ] Cài parser: strip whitespace/BOM đầu file; bỏ dòng trắng và dòng bắt đầu `#`, `%`, `@`; normalize item trùng trong một dòng nhưng giữ nguyên số dòng giao dịch hợp lệ. Reject token không nguyên dương hoặc vượt Int, kèm số dòng.
-- [ ] Chỉ nhận minsup dạng thập phân `0.4`, `1`, `1.0` với 0 < r <= 1; reject `%`, NaN, Inf, số mũ và chuỗi rỗng ở phiên bản đầu. Parse chữ số bằng BigInt, không đi qua Float64; dùng `cld(numerator(r)*n, denominator(r))` rồi chuyển kết quả sang Int; n âm là lỗi.
-- [ ] Thêm test BOM, khoảng trắng/tab, metadata-only, item 0, token chữ, minsup âm/NaN và output đúng chuỗi `1 3 #SUP: 2\n`; chạy lại test đến PASS.
-- [ ] Lưu fixture 5 giao dịch trong checklist khởi động. Expected có 15 mẫu: singleton `1:3, 2:4, 3:4, 5:4`; pair `12:2, 13:3, 15:2, 23:3, 25:4, 35:3`; triple `123:2, 125:2, 135:2, 235:3`; quadruple `1235:2`. Các ký hiệu viết gọn này là tập item, không phải số nguyên ghép chữ số; file thực dùng khoảng trắng và `#SUP:`.
-- [ ] Commit: `feat: add SPMF IO and exact support thresholds`.
+- [x] Chạy `julia --project=. test/runtests.jl io`; xác nhận FAIL do API chưa được cài, không phải do thiếu Julia.
+- [x] Cài parser: strip whitespace/BOM đầu file; bỏ dòng trắng và dòng bắt đầu `#`, `%`, `@`; normalize item trùng trong một dòng nhưng giữ nguyên số dòng giao dịch hợp lệ. Reject token không nguyên dương hoặc vượt Int, kèm số dòng.
+- [x] Chỉ nhận minsup dạng thập phân `0.4`, `1`, `1.0` với 0 < r <= 1; reject `%`, NaN, Inf, số mũ và chuỗi rỗng ở phiên bản đầu. Parse chữ số bằng BigInt, không đi qua Float64; dùng `cld(numerator(r)*n, denominator(r))` rồi chuyển kết quả sang Int; n âm là lỗi.
+- [x] Thêm test BOM, khoảng trắng/tab, metadata-only, item 0, token chữ, minsup âm/NaN và output đúng chuỗi `1 3 #SUP: 2\n`; chạy lại test đến PASS.
+- [x] Lưu fixture 5 giao dịch trong checklist khởi động. Expected có 15 mẫu: singleton `1:3, 2:4, 3:4, 5:4`; pair `12:2, 13:3, 15:2, 23:3, 25:4, 35:3`; triple `123:2, 125:2, 135:2, 235:3`; quadruple `1235:2`. Các ký hiệu viết gọn này là tập item, không phải số nguyên ghép chữ số; file thực dùng khoảng trắng và `#SUP:`.
+- [x] Commit: `feat: add SPMF IO and exact support thresholds`.
 
 **Gate:** parser/threshold test pass; fixture được kiểm lại bằng tính tay. Chưa tuyên bố negFIN chạy được.
 
@@ -123,7 +125,7 @@ Dùng `test/` để khớp lệnh đề bài `julia --project test/runtests.jl`;
 - Produces `prepare(db::TransactionDB, min_count::Int)::PreparedDB`, `item_mask(rank::Int)::BigInt`, `build_bmc(prepared::PreparedDB)::BMCNode`, `collect_nodesets(root::BMCNode, nitems::Int)::Vector{Vector{NodeInfo}}`.
 - `prepare` giữ `n_transactions = length(db)` kể cả giao dịch rỗng sau lọc; không tính lại N trên giao dịch còn item.
 
-- [ ] Viết test ordering, BigInt và prefix count:
+- [x] Viết test ordering, BigInt và prefix count:
 
 ```julia
 p = prepare([[10, 20], [10, 20], [10, 30]], 1)
@@ -138,11 +140,11 @@ ns = collect_nodesets(root, 3)
 @test sum(ni.count for ni in ns[2]) == 2
 ```
 
-- [ ] Chạy `julia --project=. test/runtests.jl tree`; xác nhận FAIL vì các API chưa có.
-- [ ] Cài prepare và Algorithms 1/3 phần dựng cây/Nodeset; root có bitmap 0, bitmap con = bitmap cha OR mask item. Xếp tie theo ID để chỉ có một thứ tự toàn phần.
-- [ ] Thêm test nhiều nhánh, tất cả item bị lọc, ID thưa `[7, 90, 500]` và 70 singleton có cùng support; Nodeset giữ đúng tổng count và root bị loại.
-- [ ] Chạy `julia --project=. test/runtests.jl io tree`; yêu cầu PASS. Không sửa hay mutate bitmap BigInt đã gắn cho node khác.
-- [ ] Commit: `feat: construct BMC tree and singleton nodesets`.
+- [x] Chạy `julia --project=. test/runtests.jl tree`; xác nhận FAIL vì các API chưa có.
+- [x] Cài prepare và Algorithms 1/3 phần dựng cây/Nodeset; root có bitmap 0, bitmap con = bitmap cha OR mask item. Xếp tie theo ID để chỉ có một thứ tự toàn phần.
+- [x] Thêm test nhiều nhánh, tất cả item bị lọc, ID thưa `[7, 90, 500]` và 70 singleton có cùng support; Nodeset giữ đúng tổng count và root bị loại.
+- [x] Chạy `julia --project=. test/runtests.jl io tree`; yêu cầu PASS. Không sửa hay mutate bitmap BigInt đã gắn cho node khác.
+- [x] Commit: `feat: construct BMC tree and singleton nodesets`.
 
 **Gate:** hình cây và weighted support khớp tính tay; bitmap hoạt động ở bit 65 trở lên.
 
@@ -156,7 +158,7 @@ ns = collect_nodesets(root, 3)
 - Pair: lọc Nodeset của singleton hiện tại theo bit item thêm bằng 0.
 - Extension P=jX, R=ijX: lọc NegNodeset(Q=iX) theo bit j bằng 1. Q là sibling cùng prefix X, không phải NegNodeset(P).
 
-- [ ] Viết test định nghĩa với trọng số và mask khác bit thấp nhất:
+- [x] Viết test định nghĩa với trọng số và mask khác bit thấp nhất:
 
 ```julia
 nodes = [NodeInfo(BigInt(5), 3), NodeInfo(BigInt(4), 2)]
@@ -166,11 +168,11 @@ nodes = [NodeInfo(BigInt(5), 3), NodeInfo(BigInt(4), 2)]
 @test isempty(negative_extension(nodes, 2))
 ```
 
-- [ ] Chạy `julia --project=. test/runtests.jl negnodesets`; xác nhận FAIL trước khi cài kernel.
-- [ ] Cài theo Definitions 9/10 và Properties 6/7/8. Kiểm tra bit bật bằng `(bitmap & mask) != 0`, không dịch nguyên điều kiện `== 1` trong giả mã sang so sánh số nguyên vì mask có thể là 4, 8, ...
-- [ ] Thêm test NegNodeset rỗng, record count > 1 và rank 70; xác nhận kernel không mutate đầu vào, support = support cha trừ tổng count của các record âm.
-- [ ] Chạy `julia --project=. test/runtests.jl io tree negnodesets`; yêu cầu PASS.
-- [ ] Commit: `feat: implement weighted NegNodeset kernels`.
+- [x] Chạy `julia --project=. test/runtests.jl negnodesets`; xác nhận FAIL trước khi cài kernel.
+- [x] Cài theo Definitions 9/10 và Properties 6/7/8. Kiểm tra bit bật bằng `(bitmap & mask) != 0`, không dịch nguyên điều kiện `== 1` trong giả mã sang so sánh số nguyên vì mask có thể là 4, 8, ...
+- [x] Thêm test NegNodeset rỗng, record count > 1 và rank 70; xác nhận kernel không mutate đầu vào, support = support cha trừ tổng count của các record âm.
+- [x] Chạy `julia --project=. test/runtests.jl io tree negnodesets`; yêu cầu PASS.
+- [x] Commit: `feat: implement weighted NegNodeset kernels`.
 
 **Gate:** cả hai trường hợp pair/extension đều có ví dụ đúng độc lập; không nhầm số node với support.
 
@@ -185,8 +187,8 @@ nodes = [NodeInfo(BigInt(5), 3), NodeInfo(BigInt(4), 2)]
 - `core` gồm các rank trên prefix thực, xếp giảm; `current.rank == first(core)`. `siblings` là các candidate cùng parent X với current jX, có rank i > j và đã xếp tăng; negative của mỗi sibling biểu diễn Q=iX.
 - Helper test `collect_patterns(db::TransactionDB, minsup::Rational{BigInt})` trả NamedTuple có `emitted::Vector{Tuple{Vector{Int},Int}}`, `supports::Dict{Tuple{Vararg{Int}},Int}` và `summary::MiningSummary`. Helper assert không duplicate trước khi tạo supports; chỉ được include trong test.
 
-- [ ] Viết test với collector append vào vector, giữ cả thứ tự phát và số lần phát; tạo map từ tuple item → support chỉ sau khi xác nhận không có tuple lặp. Không dùng map ghi đè để che lỗi duplicate.
-- [ ] Ghim các assertion sau trong test:
+- [x] Viết test với collector append vào vector, giữ cả thứ tự phát và số lần phát; tạo map từ tuple item → support chỉ sau khi xác nhận không có tuple lặp. Không dùng map ghi đè để che lỗi duplicate.
+- [x] Ghim các assertion sau trong test:
 
 ```julia
 # expected_from_fixture là Dict tuple → support khai báo trực tiếp trong test
@@ -201,15 +203,15 @@ promotion_got = collect_patterns([[1,2,3], [1,2,3], [3]], big(2)//big(3)).suppor
 # promotion_db = [[1,2,3], [1,2,3], [3]], minsup = 2//3
 ```
 
-- [ ] Chạy `julia --project=. test/runtests.jl mining`; xác nhận FAIL trước implementation.
-- [ ] Dựng các singleton Candidate; gọi visit theo rank tăng và chỉ truyền các sibling có rank lớn hơn current. Nhánh rỗng không phát empty itemset; DB rỗng cho summary 0 mẫu.
-- [ ] Trong visit, tính **toàn bộ candidate mở rộng trước khi đệ quy**. Nếu core dài 1, dùng negative_pair trên Nodeset của current; nếu dài >= 2, dùng negative_extension trên sibling. Tính support qua kernel Task 3.
-- [ ] Nếu support mới bằng support current, ghi rank vào equivalent cục bộ; nếu support >= min_count và nhỏ hơn support current, lưu Candidate con; còn lại bỏ. Equivalent đã kế thừa không được đưa lại vào danh sách candidate.
-- [ ] Phát mỗi core hợp với mọi tập con của inherited ∪ equivalent cục bộ, gồm tập con rỗng, cùng support current; decode ID gốc và sort. Đệ quy vào các candidate con với tail của danh sách con và equivalent đã kế thừa. Đây là biểu diễn DFS của phép khai triển family/promotion trong paper, không tạo một thuật toán FIM khác.
-- [ ] Chỉ phát singleton qua cơ chế family; không phát thêm lần riêng kiểu F ∪ L1 rồi lại in family. Không sinh lại mẫu bằng một nhánh chứa item đã promote.
-- [ ] Thêm test all-identical 3 item cho đúng 7 mẫu, single item, item bị lọc, DB rỗng và 70 giao dịch singleton cho đúng 70 mẫu ở minsup 1//70. Không test 70 item luôn đi cùng nhau vì sẽ đòi xuất 2^70-1 mẫu.
-- [ ] Ghi notes: mapping paper → code, invariants sibling, promotion, quy ước rank/bit, chi phí bitmap theo số word và output size. Không chép nguyên pseudocode hoặc khẳng định độ phức tạp độc lập với output.
-- [ ] Chạy toàn bộ test local hiện có; yêu cầu PASS; commit `feat: mine complete frequent itemsets with negFIN promotion`.
+- [x] Chạy `julia --project=. test/runtests.jl mining`; xác nhận FAIL trước implementation.
+- [x] Dựng các singleton Candidate; gọi visit theo rank tăng và chỉ truyền các sibling có rank lớn hơn current. Nhánh rỗng không phát empty itemset; DB rỗng cho summary 0 mẫu.
+- [x] Trong visit, tính **toàn bộ candidate mở rộng trước khi đệ quy**. Nếu core dài 1, dùng negative_pair trên Nodeset của current; nếu dài >= 2, dùng negative_extension trên sibling. Tính support qua kernel Task 3.
+- [x] Nếu support mới bằng support current, ghi rank vào equivalent cục bộ; nếu support >= min_count và nhỏ hơn support current, lưu Candidate con; còn lại bỏ. Equivalent đã kế thừa không được đưa lại vào danh sách candidate.
+- [x] Phát mỗi core hợp với mọi tập con của inherited ∪ equivalent cục bộ, gồm tập con rỗng, cùng support current; decode ID gốc và sort. Đệ quy vào các candidate con với tail của danh sách con và equivalent đã kế thừa. Đây là biểu diễn DFS của phép khai triển family/promotion trong paper, không tạo một thuật toán FIM khác.
+- [x] Chỉ phát singleton qua cơ chế family; không phát thêm lần riêng kiểu F ∪ L1 rồi lại in family. Không sinh lại mẫu bằng một nhánh chứa item đã promote.
+- [x] Thêm test all-identical 3 item cho đúng 7 mẫu, single item, item bị lọc, DB rỗng và 70 giao dịch singleton cho đúng 70 mẫu ở minsup 1//70. Không test 70 item luôn đi cùng nhau vì sẽ đòi xuất 2^70-1 mẫu.
+- [x] Ghi notes: mapping paper → code, invariants sibling, promotion, quy ước rank/bit, chi phí bitmap theo số word và output size. Không chép nguyên pseudocode hoặc khẳng định độ phức tạp độc lập với output.
+- [x] Chạy toàn bộ test local hiện có; yêu cầu PASS; commit `feat: mine complete frequent itemsets with negFIN promotion`.
 
 **Gate:** ví dụ 15 mẫu, promotion 7 mẫu, trường hợp >64 item đều đúng; callback không nhận vector bị tái sử dụng/mutate sau đó.
 
@@ -223,20 +225,20 @@ promotion_got = collect_patterns([[1,2,3], [1,2,3], [3]], big(2)//big(3)).suppor
 - Lệnh: `julia --project=. run.jl --input <path> --output <path> --minsup 0.4 --variant baseline [--stats <path.toml>]`.
 - Chỉ hỗ trợ baseline; yêu cầu optimized phải báo chưa hỗ trợ, không âm thầm chạy baseline. `--help` thoát 0; lỗi tham số/input thoát 2, lỗi thực thi/I/O thoát 1; thông báo ở stderr.
 
-- [ ] Viết test parse và CLI subprocess trước implementation: fixture → exit 0, 15 dòng kết quả; minsup lỗi → exit 2; file không tồn tại → exit 2; variant optimized → exit 2.
-- [ ] Chạy `julia --project=. test/runtests.jl cli`; xác nhận FAIL.
-- [ ] Cài CLI dùng parser nhỏ của nhóm, không thêm package để parse 5 option. Output dùng callback ghi từng dòng; toàn bộ kết quả không bị giữ trong RAM ở CLI.
-- [ ] Ghi vào file tạm cùng thư mục output và chỉ thay output sau khi chạy thành công; reject input/output trỏ cùng file kể cả đường dẫn tương đối khác nhau hoặc symlink. Reject stats trùng input/output. Kiểm tra đường dẫn canonical khi thực thi.
-- [ ] `--stats` ghi TOML bằng stdlib: `variant`, `julia_version`, `n_transactions`, `min_count`, `n_frequent_items`, `n_patterns`, `read_seconds`, `mine_write_seconds`, `total_seconds`. mine_write gồm chuẩn bị, xây cây, khai thác và ghi; total bao phủ pipeline trong main, **không** đo startup trước khi Julia gọi main. Không gắn nhãn các giá trị này là pure mining hoặc peak RAM.
-- [ ] Thêm test output/temp cleanup khi có lỗi, đường dẫn có khoảng trắng, cùng input/output, metadata-only input tạo output rỗng, stats.n_patterns=15 và các thời gian không âm. Test callback phát bản copy bằng giữ snapshot sau khi mining hoàn tất.
-- [ ] Chạy test local; thử lệnh demo dưới đây và ghi ví dụ vào README/contract; chỉ ghi câu lệnh thật sự chạy và kết quả thật.
+- [x] Viết test parse và CLI subprocess trước implementation: fixture → exit 0, 15 dòng kết quả; minsup lỗi → exit 2; file không tồn tại → exit 2; variant optimized → exit 2.
+- [x] Chạy `julia --project=. test/runtests.jl cli`; xác nhận FAIL.
+- [x] Cài CLI dùng parser nhỏ của nhóm, không thêm package để parse 5 option. Output dùng callback ghi từng dòng; toàn bộ kết quả không bị giữ trong RAM ở CLI.
+- [x] Ghi vào file tạm cùng thư mục output và chỉ thay output sau khi chạy thành công; reject input/output trỏ cùng file kể cả đường dẫn tương đối khác nhau hoặc symlink. Reject stats trùng input/output. Kiểm tra đường dẫn canonical khi thực thi.
+- [x] `--stats` ghi TOML bằng stdlib: `variant`, `julia_version`, `n_transactions`, `min_count`, `n_frequent_items`, `n_patterns`, `read_seconds`, `mine_write_seconds`, `total_seconds`. mine_write gồm chuẩn bị, xây cây, khai thác và ghi; total bao phủ pipeline trong main, **không** đo startup trước khi Julia gọi main. Không gắn nhãn các giá trị này là pure mining hoặc peak RAM.
+- [x] Thêm test output/temp cleanup khi có lỗi, đường dẫn có khoảng trắng, cùng input/output, metadata-only input tạo output rỗng, stats.n_patterns=15 và các thời gian không âm. Test callback phát bản copy bằng giữ snapshot sau khi mining hoàn tất.
+- [x] Chạy test local; thử lệnh demo dưới đây và ghi ví dụ vào README/contract; chỉ ghi câu lệnh thật sự chạy và kết quả thật.
 
 ```text
 julia --project=. test/runtests.jl
 julia --project=. run.jl --input data/toy/example.txt --output results/toy.txt --minsup 0.4 --variant baseline --stats results/toy.stats.toml
 ```
 
-- [ ] Commit `feat: expose baseline CLI with streaming output and run stats`.
+- [x] Commit `feat: expose baseline CLI with streaming output and run stats`.
 
 **Gate:** Hiếu/Tiến gọi được một lệnh ổn định; file kết quả chỉ có itemset/support; thông số thống kê nêu rõ phạm vi đo.
 
@@ -248,12 +250,12 @@ julia --project=. run.jl --input data/toy/example.txt --output results/toy.txt -
 
 Consumes `collect_patterns` từ Task 4 để lấy kết quả sản phẩm và bắt duplicate trước khi đối chiếu oracle.
 
-- [ ] Viết oracle tự liệt kê các tập con khác rỗng của universe, đếm số giao dịch chứa mỗi tập, lọc min_count; không tái dùng BMC/NegNodeset để tránh hai bên cùng một lỗi.
-- [ ] Dùng `MersenneTwister(20261112)`, sinh 50 DB có 1–8 item và 1–20 giao dịch không rỗng, có giao dịch trùng; kiểm tra các ngưỡng 1/4, 1/2, 3/4, 1 và một trường hợp không có transaction.
-- [ ] Mỗi lần kiểm tra: support map bằng oracle, không có duplicate, không có empty itemset, min_count đúng. Thêm biến đổi hoán vị thứ tự giao dịch/item và đổi ID sang các số nguyên dương thưa; kết quả chỉ đổi theo ánh xạ ID.
-- [ ] Thêm fixture promotion nhiều cấp có cả candidate strict và promoted, để test được việc truyền equivalent qua ít nhất hai cấp.
-- [ ] Chạy `julia --project=. test/runtests.jl differential`; nếu có failure, lưu seed, input và minsup tái hiện, viết regression test rồi sửa đúng phần thuật toán.
-- [ ] Chạy toàn bộ test local; yêu cầu PASS; commit `test: verify negFIN against independent exhaustive oracle`.
+- [x] Viết oracle tự liệt kê các tập con khác rỗng của universe, đếm số giao dịch chứa mỗi tập, lọc min_count; không tái dùng BMC/NegNodeset để tránh hai bên cùng một lỗi.
+- [x] Dùng `MersenneTwister(20261112)`, sinh 50 DB có 1–8 item và 1–20 giao dịch không rỗng, có giao dịch trùng; kiểm tra các ngưỡng 1/4, 1/2, 3/4, 1 và một trường hợp không có transaction.
+- [x] Mỗi lần kiểm tra: support map bằng oracle, không có duplicate, không có empty itemset, min_count đúng. Thêm biến đổi hoán vị thứ tự giao dịch/item và đổi ID sang các số nguyên dương thưa; kết quả chỉ đổi theo ánh xạ ID.
+- [x] Thêm fixture promotion nhiều cấp có cả candidate strict và promoted, để test được việc truyền equivalent qua ít nhất hai cấp.
+- [x] Chạy `julia --project=. test/runtests.jl differential`; nếu có failure, lưu seed, input và minsup tái hiện, viết regression test rồi sửa đúng phần thuật toán.
+- [x] Chạy toàn bộ test local; yêu cầu PASS; commit `test: verify negFIN against independent exhaustive oracle`.
 
 **Gate:** mọi test đối chiếu đều pass; không dùng thời gian chạy của oracle làm benchmark negFIN.
 
@@ -266,13 +268,13 @@ Consumes `collect_patterns` từ Task 4 để lấy kết quả sản phẩm và
 - Manifest có 5 bảng `[[datasets]]`: `name`, `path`, `minsup` (chuỗi thập phân), `source_url`; đường dẫn dataset tương đối tính từ vị trí manifest.
 - Tên dataset: Chess, Mushroom, Retail, Accidents, T10I4D100K. Hiếu chọn và ghi ngưỡng thực tế có output không rỗng, phù hợp tài nguyên; ưu tiên chạy mẫu nhỏ để khảo sát trước, nhưng phải ghi rõ sample/full. Không bịa kết quả hoặc coi sample đã thay thế kiểm chứng full.
 
-- [ ] Phối hợp Hiếu chuẩn bị Java, SPMF jar, dataset và manifest; ghi phiên bản, nguồn, SHA256 input, minsup và thời điểm chạy. Không đọc source SPMF.
-- [ ] Viết parser output tham chiếu thành map tuple item → support, bỏ metadata/blank và chuẩn hóa thứ tự; test parser bằng file nhỏ tự viết có thứ tự khác output nhóm. Duplicate phải báo lỗi.
-- [ ] Gọi cùng input/minsup: `java -jar <jar> run NegFIN <input> <reference-output> <minsup>`; đối chiếu count, mọi key và mọi support. SPMF trả mã lỗi hoặc kết quả thiếu thì test phải FAIL; thiếu env khi gọi nhóm `spmf` cũng FAIL với hướng dẫn, không skip rồi báo đã pass.
-- [ ] Ghim unit test so sánh parser: thứ tự dòng/item khác vẫn bằng; thiếu mẫu, dư mẫu hoặc sai support đều bị phát hiện. Khi lệch ngưỡng số thực, ghi rõ min_count hai bên và chọn giá trị kiểm chứng được, không nới tolerance cho support nguyên.
-- [ ] Chạy `julia --project=. test/runtests.jl spmf`; bắt đầu fixture rồi 5 tập full ở ngưỡng manifest. Lưu báo cáo `results/correctness.toml` gồm dataset, SHA256, n_patterns của hai bên, missing, extra, support_mismatch và trạng thái sample/full. Kết quả chạy không commit cùng dữ liệu lớn; README ghi output cuối cùng có dẫn chiếu cấu hình.
+- [x] Phối hợp Hiếu chuẩn bị Java, SPMF jar, dataset và manifest; ghi phiên bản, nguồn, SHA256 input, minsup và thời điểm chạy. Không đọc source SPMF.
+- [x] Viết parser output tham chiếu thành map tuple item → support, bỏ metadata/blank và chuẩn hóa thứ tự; test parser bằng file nhỏ tự viết có thứ tự khác output nhóm. Duplicate phải báo lỗi.
+- [x] Gọi cùng input/minsup: `java -jar <jar> run NegFIN <input> <reference-output> <minsup>`; đối chiếu count, mọi key và mọi support. SPMF trả mã lỗi hoặc kết quả thiếu thì test phải FAIL; thiếu env khi gọi nhóm `spmf` cũng FAIL với hướng dẫn, không skip rồi báo đã pass.
+- [x] Ghim unit test so sánh parser: thứ tự dòng/item khác vẫn bằng; thiếu mẫu, dư mẫu hoặc sai support đều bị phát hiện. Khi lệch ngưỡng số thực, ghi rõ min_count hai bên và chọn giá trị kiểm chứng được, không nới tolerance cho support nguyên.
+- [x] Chạy `julia --project=. test/runtests.jl spmf`; bắt đầu fixture rồi 5 tập full ở ngưỡng manifest. Lưu báo cáo `results/correctness.toml` gồm dataset, SHA256, n_patterns của hai bên, missing, extra, support_mismatch và trạng thái sample/full. Kết quả chạy không commit cùng dữ liệu lớn; README ghi output cuối cùng có dẫn chiếu cấu hình.
 - [ ] Đăng bàn giao CLI/API và giải thích thuật toán; Hiếu xác nhận harness hoạt động, Tiến thử một file giao dịch ứng dụng qua cùng CLI. Đây là kiểm tra tích hợp, chưa thay cho thực hiện hai ứng dụng đầy đủ.
-- [ ] Chạy lại test local, cập nhật README theo bằng chứng thực tế và commit `test: validate baseline against SPMF NegFIN`.
+- [x] Chạy lại test local, cập nhật README theo bằng chứng thực tế và commit `test: validate baseline against SPMF NegFIN`.
 
 **Gate:** kết quả full của 5 tập được đối chiếu hoàn toàn ở cấu hình ghi lại; mọi missing/extra/support_mismatch bằng 0. Nếu thiếu runtime/dữ liệu hoặc chạy chưa xong, ghi đúng điều còn thiếu và không đánh dấu Baseline đã hoàn tất.
 
@@ -292,13 +294,13 @@ Hiếu có thể chuẩn bị SPMF/manifest ngay từ đầu; Tiến dùng contr
 
 ## Definition of Done
 
-- [ ] `julia --project=. test/runtests.jl` pass, gồm fixture, bitmap >64, weighted count, promotion và random oracle.
-- [ ] CLI sinh đúng 15 mẫu/support trên toy, không duplicate, output đọc lại được và lỗi có exit code rõ.
-- [ ] `julia --project=. test/runtests.jl spmf` pass trên 5 CSDL full ở cấu hình được lưu; giữ riêng trạng thái test local với tích hợp ngoài.
-- [ ] README có môi trường Julia cụ thể, lệnh chạy/test, kết quả cuối và quy ước minsup.
-- [ ] Notes giải thích được khác biệt Nodeset/NegNodeset, promotion, số lần xuất mẫu và ánh xạ sang paper.
-- [ ] Cách đo đã ghi rõ; peak RSS và runtime sau warm-up thuộc harness của Hiếu, không suy ra từ allocation của Julia hay timing cold CLI.
-- [ ] Baseline được giữ làm đối chứng cho lần tối ưu tiếp theo; không đặt tên optimized cho mã chưa có cải tiến đo được.
+- [x] `julia --project=. test/runtests.jl` pass, gồm fixture, bitmap >64, weighted count, promotion và random oracle.
+- [x] CLI sinh đúng 15 mẫu/support trên toy, không duplicate, output đọc lại được và lỗi có exit code rõ.
+- [x] `julia --project=. test/runtests.jl spmf` pass trên 5 CSDL full ở cấu hình được lưu; giữ riêng trạng thái test local với tích hợp ngoài.
+- [x] README có môi trường Julia cụ thể, lệnh chạy/test, kết quả cuối và quy ước minsup.
+- [x] Notes giải thích được khác biệt Nodeset/NegNodeset, promotion, số lần xuất mẫu và ánh xạ sang paper.
+- [x] Cách đo đã ghi rõ; peak RSS và runtime sau warm-up thuộc harness của Hiếu, không suy ra từ allocation của Julia hay timing cold CLI.
+- [x] Baseline được giữ làm đối chứng cho lần tối ưu tiếp theo; không đặt tên optimized cho mã chưa có cải tiến đo được.
 
 ## Nguồn đối chiếu kỹ thuật
 

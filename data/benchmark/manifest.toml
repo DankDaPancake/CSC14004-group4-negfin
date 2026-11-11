@@ -1,0 +1,41 @@
+# Full files downloaded from the SPMF dataset catalog; counts describe these exact SHA256 snapshots.
+
+[[datasets]]
+name = "Chess"
+path = "chess.txt"
+minsup = "0.9"
+expected_transactions = 3196
+sha256 = "a12ea887df58a396709430af5bf0a9a32d1f6eba8e7c13dd41f28b98572c5db2"
+source_url = "https://www.philippe-fournier-viger.com/spmf/publicdatasets/chess.txt"
+
+[[datasets]]
+name = "Mushroom"
+path = "mushrooms.txt"
+minsup = "0.8"
+expected_transactions = 8416
+sha256 = "3bc1159b06baa231932810d1d58cbb958684be88b6daa8e3672f8d76c5f0eb98"
+source_url = "https://www.philippe-fournier-viger.com/spmf/publicdatasets/mushrooms.txt"
+
+[[datasets]]
+name = "Retail"
+path = "retail.txt"
+minsup = "0.01"
+expected_transactions = 88162
+sha256 = "732c26de19888cb570d3fbb97e47206a9b1c0ce064f85dc1403314ba38f04eaa"
+source_url = "https://www.philippe-fournier-viger.com/spmf/publicdatasets/retail.txt"
+
+[[datasets]]
+name = "Accidents"
+path = "accidents.txt"
+minsup = "0.9"
+expected_transactions = 340183
+sha256 = "8c2275550966e3cb4b6066f2bb168489a9566c500af559fa3925f1b11d97f0cd"
+source_url = "https://www.philippe-fournier-viger.com/spmf/publicdatasets/accidents.txt"
+
+[[datasets]]
+name = "T10I4D100K"
+path = "T10I4D100K.txt"
+minsup = "0.02"
+expected_transactions = 100000
+sha256 = "949983f61aa976d1b774474fadd31c5f15775b24728a5e7c8b79801822ab3f89"
+source_url = "https://www.philippe-fournier-viger.com/spmf/publicdatasets/T10I4D100K.txt"
