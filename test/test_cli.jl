@@ -47,6 +47,18 @@ end
             @test capture_main(["--input",input,"--output",alias,"--minsup","0.4"]).status == 2
             @test capture_main(["--input",input,"--output",output,"--minsup","0.4","--stats",input]).status == 2
             @test read(input, String) == original
+            if Sys.iswindows()
+                # Both names are absent: samefile cannot detect this alias yet.
+                case_output = joinpath(dir, "fresh-result.txt")
+                case_stats = joinpath(dir, "FRESH-RESULT.TXT")
+                @test capture_main(["--input",input,"--output",case_output,"--minsup","0.4","--stats",case_stats]).status == 2
+                @test !ispath(case_output)
+                # Resolve aliasing in parent directories that do not exist yet too.
+                future_output = joinpath(dir, "FutureResults", "patterns.txt")
+                future_stats = joinpath(dir, "futureresults", "PATTERNS.TXT")
+                @test capture_main(["--input",input,"--output",future_output,"--minsup","0.4","--stats",future_stats]).status == 2
+                @test !ispath(dirname(future_output))
+            end
             write(output, "previous result\n")
             bad_input = joinpath(dir, "invalid.txt")
             write(bad_input, "1 2\n3 x\n")

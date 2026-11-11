@@ -1,0 +1,14 @@
+Test Summary:                   | Pass  Total  Time
+SPMF input and exact thresholds |   27     27  0.5s
+Test Summary:                            | Pass  Total  Time
+BMC tree and weighted singleton Nodesets |   21     21  1.5s
+Test Summary:                           | Pass  Total  Time
+NegNodeset filters and weighted support |   10     10  0.3s
+Test Summary:                        | Pass  Total  Time
+Complete negFIN mining and promotion |   18     18  2.3s
+Test Summary:                     | Pass  Total  Time
+CLI integration and output safety |   32     32  6.2s
+Test Summary:                                        | Pass  Total  Time
+Independent exhaustive oracle and metamorphic inputs | 1004   1004  1.6s
+Test Summary:                         | Pass  Total  Time
+Reference parser and exact comparison |    8      8  0.9s

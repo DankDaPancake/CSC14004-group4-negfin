@@ -23,7 +23,7 @@ Ví dụ có 5 giao dịch, min_count=2; đầu ra kỳ vọng là 15 mẫu tron
 
 Đã chạy trên Windows x64 bằng Julia 1.12.0, SPMF 2.67a và Temurin Java 25.0.5. SPMF jar hiện dùng cần Java 25; Java 21 không chạy được jar này. Java chỉ cần cho test tham chiếu, không cần để chạy thuật toán Julia.
 
-Bộ test local đã qua 1.116 assertion: I/O 27, BMC-tree 21, NegNodeset 10, mining/promotion 18, CLI 28, differential 1.004, parser tham chiếu 8. Differential dùng seed 20261112, 50 CSDL nhỏ với 4 ngưỡng và các phép hoán vị/đổi ID, đối chiếu oracle vét cạn độc lập.
+Bộ test local đã qua 1.120 assertion trên Windows: I/O 27, BMC-tree 21, NegNodeset 10, mining/promotion 18, CLI 32, differential 1.004, parser tham chiếu 8. Differential dùng seed 20261112, 50 CSDL nhỏ với 4 ngưỡng và các phép hoán vị/đổi ID, đối chiếu oracle vét cạn độc lập. CLI có regression cho alias hoa/thường của output/stats chưa tồn tại trên Windows.
 
 Đối chiếu SPMF trên **5 file đầy đủ**, cùng input/minsup, đã qua 35 assertion. Cả 5 file đều có missing=0, extra=0, support_mismatch=0. Manifest ghi ngưỡng và SHA256; [báo cáo máy đọc được](docs/validation/correctness.toml) giữ số giao dịch và số mẫu thực tế.
 
@@ -61,7 +61,7 @@ SPMF input and exact thresholds                     27/27
 BMC tree and weighted singleton Nodesets            21/21
 NegNodeset filters and weighted support              10/10
 Complete negFIN mining and promotion                18/18
-CLI integration and output safety                   28/28
+CLI integration and output safety                   32/32
 Independent exhaustive oracle and metamorphic     1004/1004
 Reference parser and exact comparison                8/8
 SPMF NegFIN correctness on full benchmark databases 35/35

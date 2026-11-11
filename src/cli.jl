@@ -38,7 +38,14 @@ function canonical_path(path::String)::String
 end
 
 function paths_alias(a::String, b::String)::Bool
-    canonical_path(a) == canonical_path(b) && return true
+    left, right = canonical_path(a), canonical_path(b)
+    # Windows names normally ignore case, including names/parents not created
+    # yet. Fail conservatively before writing; samefile alone needs both files.
+    if Sys.iswindows()
+        lowercase(left) == lowercase(right) && return true
+    else
+        left == right && return true
+    end
     return ispath(a) && ispath(b) && samefile(a, b)
 end
 

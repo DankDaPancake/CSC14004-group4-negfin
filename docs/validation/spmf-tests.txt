@@ -1,0 +1,7 @@
+Chess: full N=3196, patterns=622, missing=0, extra=0, support_mismatch=0
+Mushroom: full N=8416, patterns=17, missing=0, extra=0, support_mismatch=0
+Retail: full N=88162, patterns=159, missing=0, extra=0, support_mismatch=0
+Accidents: full N=340183, patterns=31, missing=0, extra=0, support_mismatch=0
+T10I4D100K: full N=100000, patterns=155, missing=0, extra=0, support_mismatch=0
+Test Summary:                                       | Pass  Total   Time
+SPMF NegFIN correctness on full benchmark databases |   35     35  18.9s

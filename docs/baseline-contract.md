@@ -29,7 +29,7 @@ Minsup là chuỗi thập phân trong (0,1], ví dụ `0.4`, `0.07`, `1.0`. Chư
 
 Mỗi dòng: `1 3 #SUP: 2`. Không có empty itemset hoặc metadata/log lẫn trong file kết quả. Item trong dòng tăng dần; thứ tự các dòng phụ thuộc duyệt tìm kiếm, không dùng thứ tự dòng để kiểm tra correctness.
 
-Mã thoát: 0 thành công hoặc help; 2 tham số/input không hợp lệ; 1 lỗi chạy/ghi file. stderr chứa lỗi. Input, output và stats phải là các file khác nhau, kể cả alias symlink/hardlink. Output được ghi vào file tạm cùng thư mục và rename sau khi khai thác thành công, giữ kết quả cũ nếu khai thác/ghi tạm thất bại. Output và stats là hai file xuất riêng; nếu ghi stats thất bại, process báo lỗi 1 dù output có thể đã hoàn chỉnh.
+Mã thoát: 0 thành công hoặc help; 2 tham số/input không hợp lệ; 1 lỗi chạy/ghi file. stderr chứa lỗi. Input, output và stats phải là các file khác nhau, kể cả alias symlink/hardlink. Trên Windows, đường dẫn canonical chỉ khác hoa/thường bị từ chối bảo thủ ngay cả khi file/thư mục cha chưa tồn tại, tránh stats ghi đè output. Output được ghi vào file tạm cùng thư mục và rename sau khi khai thác thành công, giữ kết quả cũ nếu khai thác/ghi tạm thất bại. Output và stats là hai file xuất riêng; nếu ghi stats thất bại, process báo lỗi 1 dù output có thể đã hoàn chỉnh.
 
 ## Đo lường
 
