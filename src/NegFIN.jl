@@ -6,5 +6,6 @@ include("types.jl")
 include("io.jl")
 include("prepare.jl")
 include("bmc_tree.jl")
+include("negnodesets.jl")
 
 end
