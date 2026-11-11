@@ -74,7 +74,7 @@ Dùng `test/` để khớp lệnh đề bài `julia --project test/runtests.jl`;
 
 - `TransactionDB = Vector{Vector{Int}}`: item gốc là số nguyên dương; mỗi giao dịch đã sort/unique, các giao dịch giống nhau vẫn được giữ riêng.
 - `PreparedDB`: `transactions::TransactionDB` chứa rank giảm dần, `items::Vector{Int}` ánh xạ rank → ID gốc, `supports::Vector{Int}`, `min_count::Int`, `n_transactions::Int`.
-- Rank là chỉ số Julia 1-based; `items` xếp tăng theo `(support, ID gốc)`. Bit của rank r là `bigint(1) << (r - 1)`. Giao dịch đưa vào cây theo rank giảm dần.
+- Rank là chỉ số Julia 1-based; `items` xếp tăng theo `(support, ID gốc)`. Bit của rank r là `BigInt(1) << (r - 1)`. Giao dịch đưa vào cây theo rank giảm dần.
 - `BMCNode`: `rank::Int`, `count::Int`, `bitmap::BigInt`, `children::Dict{Int,BMCNode}`. Root rank=0, count=0, bitmap=0; không đưa root vào Nodeset.
 - `NodeInfo`: `bitmap::BigInt`, `count::Int`; một record cho mỗi node gốc, không gộp các record rồi làm mất trọng số.
 - `Candidate`: `rank::Int`, `support::Int`, `negative::Vector{NodeInfo}`. Singleton để negative rỗng; tập >= 2 dùng NegNodeset thực.
@@ -129,7 +129,7 @@ Dùng `test/` để khớp lệnh đề bài `julia --project test/runtests.jl`;
 p = prepare([[10, 20], [10, 20], [10, 30]], 1)
 @test p.items == [30, 20, 10]
 @test p.transactions == [[3, 2], [3, 2], [3, 1]]
-@test item_mask(65) == bigint(1) << 64
+@test item_mask(65) == BigInt(1) << 64
 root = build_bmc(p)
 @test root.children[3].count == 3
 @test root.children[3].children[2].count == 2
@@ -159,7 +159,7 @@ ns = collect_nodesets(root, 3)
 - [ ] Viết test định nghĩa với trọng số và mask khác bit thấp nhất:
 
 ```julia
-nodes = [NodeInfo(bigint(5), 3), NodeInfo(bigint(4), 2)]
+nodes = [NodeInfo(BigInt(5), 3), NodeInfo(BigInt(4), 2)]
 @test sum(ni.count for ni in negative_pair(nodes, 1)) == 2
 @test extended_support(5, negative_pair(nodes, 1)) == 3
 @test sum(ni.count for ni in negative_extension(nodes, 3)) == 5

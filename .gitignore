@@ -1,0 +1,6 @@
+/.superpowers/
+/results/
+/tools/
+/data/benchmark/*.txt
+*.jar
+*.tmp
