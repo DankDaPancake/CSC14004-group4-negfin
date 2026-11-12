@@ -1,4 +1,11 @@
-# group04-fim-negfin
+# CSC14004-group4-negfin
+
+Repository: https://github.com/DankDaPancake/CSC14004-group4-negfin
+
+```text
+git clone https://github.com/DankDaPancake/CSC14004-group4-negfin.git
+cd CSC14004-group4-negfin
+```
 
 Đồ án FIM: tự cài negFIN bằng Julia từ paper Aryabarzan et al. (2018), [DOI](https://doi.org/10.1016/j.eswa.2018.03.041). Thầy đã chấp thuận thuật toán theo xác nhận của Đăng. Thành viên: Đăng (thuật toán), Hiếu (kiểm thử/benchmark), Tiến (ứng dụng).
 
@@ -16,6 +23,7 @@ julia --project=. run.jl --input data/toy/example.txt --output results/toy.txt -
 Ví dụ có 5 giao dịch, min_count=2; đầu ra kỳ vọng là 15 mẫu trong `data/toy/example.expected.txt`. Chưa có bản Optimized.
 
 - [Quy ước CLI/I/O và phạm vi đo](docs/baseline-contract.md)
+- [Yêu cầu và phạm vi đồ án](docs/project-requirements.md)
 - [Giải thích cấu trúc dữ liệu và promotion](docs/negfin-baseline-notes.md)
 - [Kế hoạch triển khai](docs/superpowers/plans/2026-11-12-negfin-baseline.md)
 

@@ -10,7 +10,7 @@
 
 **Tech Stack:** Julia >= 1.9; Base và các thư viện chuẩn `Test`, `Random`, `TOML`, `SHA`; Java/SPMF NegFIN chỉ làm tham chiếu bên ngoài. Chưa thêm package Julia bên thứ ba.
 
-**Spec:** [Checklist khởi động](../../../../khoi_dong_negfin_julia.md), [kế hoạch của Đăng](../../../../ke_hoach_cong_viec_dang.md), [phân công nhóm](../../../../b_ng_ph_n_c_ng_n_fim.md), [paper gốc đã tải](../../../../output/pdf/Aryabarzan_2018_negFIN.pdf). Đọc phần 3–4, Algorithms 1/3/4 và Properties 5–9 của paper khi thực hiện.
+**Spec:** [Yêu cầu và phân công](../../project-requirements.md), [contract Baseline](../../baseline-contract.md), [paper gốc](https://doi.org/10.1016/j.eswa.2018.03.041). Đọc phần 3–4, Algorithms 1/3/4 và Properties 5–9 của paper khi thực hiện. Thư mục hiện tại là `CSC14004-group4-negfin/`; tên `group04-fim-negfin/` phía dưới là tên lịch sử tại thời điểm lập kế hoạch.
 
 ## Global Constraints
 
