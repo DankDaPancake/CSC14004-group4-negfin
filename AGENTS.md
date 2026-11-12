@@ -7,7 +7,7 @@
 - `main` là nhánh được bảo vệ. Không commit hoặc push trực tiếp lên `main`, kể cả thay đổi nhỏ; không force push, xóa hoặc viết lại lịch sử `main`.
 - Trước khi triển khai, kiểm tra `git status`, cập nhật thông tin `origin/main` và tạo một nhánh riêng từ `origin/main` mới nhất. Không ghi đè, xóa hay tự ý đưa thay đổi chưa commit của người khác vào nhánh mới. Nếu công việc phụ thuộc vào nhánh chưa merge, tạo nhánh từ nhánh phụ thuộc và ghi rõ trong PR.
 - Đặt tên theo mục đích: `feature/<mo-ta-ngan>`, `fix/<mo-ta-ngan>`, `docs/<mo-ta-ngan>`, `test/<mo-ta-ngan>`, `ci/<mo-ta-ngan>` hoặc `chore/<mo-ta-ngan>`. Dùng chữ thường và dấu gạch ngang; ví dụ `feature/optimized-bitmap`.
-- Mỗi nhánh tập trung vào một thay đổi có thể review. Đẩy nhánh riêng và mở PR vào `main`; mô tả mục đích, thay đổi và kết quả kiểm thử. Cần ít nhất một người khác duyệt trước khi merge; xử lý các nhận xét và lỗi CI trước khi merge.
+- Mỗi nhánh tập trung vào một thay đổi có thể review. Đẩy nhánh riêng và mở PR vào `main`; mô tả mục đích, thay đổi và kết quả kiểm thử. Thông thường cần ít nhất một người khác duyệt trước khi merge; quản trị viên có thể tự kiểm tra và bỏ qua yêu cầu review khi cần. Xử lý các nhận xét và lỗi CI trước khi merge.
 - Không tự merge PR hoặc thay đổi cấu hình bảo vệ nhánh nếu chưa được giao nhiệm vụ. Không force push nhánh dùng chung nếu chưa có thỏa thuận với người liên quan.
 
 ## Phát triển và kiểm chứng
