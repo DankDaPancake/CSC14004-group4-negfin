@@ -4,6 +4,13 @@ module Bench
 using SHA
 using TOML
 
+# Reuse the caller's NegFIN (as in test/runtests.jl) so types match; otherwise load it here.
+if isdefined(Main, :NegFIN)
+    const NegFIN = Main.NegFIN
+else
+    include(joinpath(dirname(@__DIR__), "src", "NegFIN.jl"))
+end
+
 # Kept wide so Baseline and Optimized rows share one schema; phases go to PHASE_COLUMNS.
 const RUN_COLUMNS = ["run_id", "variant", "scope", "dataset", "fraction", "input_sha256",
     "n_transactions", "minsup", "min_count", "n_frequent_items", "n_patterns", "emit_mode",
@@ -208,6 +215,121 @@ function phase_rows(run_id, variant, scope, dataset, fraction, minsup, emit_mode
                 "emit_mode" => emit_mode, "repetition" => repetition, "phase" => name,
                 "seconds" => m["seconds"], "bytes" => m["bytes"], "gc_seconds" => m["gc_seconds"])
             for (name, m) in sort!(collect(phases); by=first)]
+end
+
+"""
+Mine `db` once in this process with the phase hook. `:count` only counts patterns;
+`:write` formats them into a file under `tmpdir` like the CLI, then deletes it.
+"""
+function measure_warm(db::Vector{Vector{Int}}, minsup::String, emit_mode::Symbol, tmpdir::String)::Dict{String,Any}
+    emit_mode in (:count, :write) || throw(ArgumentError("emit_mode must be :count or :write"))
+    phases = Dict{String,Any}()
+    counters = Dict{String,Any}()
+    on_phase = (phase, metrics) -> begin
+        phases[string(phase)] = Dict{String,Any}("seconds" => metrics.seconds,
+            "bytes" => metrics.bytes, "gc_seconds" => metrics.gc_seconds)
+        for key in (:n_frequent_items, :bmc_nodes, :negative_records_scanned)
+            haskey(metrics, key) && (counters[string(key)] = metrics[key])
+        end
+    end
+    ratio = NegFIN.parse_minsup(minsup)
+    GC.gc()
+    result = Dict{String,Any}()
+    if emit_mode == :count
+        emitted = Ref(0)
+        summary = NegFIN.mine_baseline(db, ratio; on_phase, emit=(items, support) -> (emitted[] += 1))
+    else
+        path, io = mktemp(tmpdir)
+        try
+            summary = NegFIN.mine_baseline(db, ratio; on_phase,
+                emit=(items, support) -> NegFIN.write_itemset(io, items, support))
+            close(io)
+            result["output_bytes"] = filesize(path)
+        finally
+            isopen(io) && close(io)
+            rm(path; force=true)
+        end
+    end
+    merge!(result, counters)
+    result["phases"] = phases
+    result["phases_total_seconds"] = sum(p["seconds"] for p in values(phases))
+    result["n_patterns"] = summary.n_patterns
+    result["n_frequent_items"] = summary.n_frequent_items
+    result["min_count"] = summary.min_count
+    result["n_transactions"] = summary.n_transactions
+    return result
+end
+
+"""Compile the measured code paths on the toy database before timing anything."""
+function warmup!(tmpdir::String)::Nothing
+    db = open(NegFIN.read_spmf, joinpath(dirname(@__DIR__), "data", "toy", "example.txt"))
+    for mode in (:count, :write)
+        measure_warm(db, "0.4", mode, tmpdir)
+    end
+    return nothing
+end
+
+"""Write the first `round(fraction * n)` data lines (those `read_spmf` keeps) of `input`."""
+function prefix_subset(input::String, fraction::Float64, output::String)::Int
+    lines = String[]
+    for (number, raw) in enumerate(eachline(input))
+        line = strip(number == 1 ? replace(raw, '﻿' => "") : raw)
+        (isempty(line) || first(line) in ('#', '%', '@')) && continue
+        push!(lines, line)
+    end
+    keep = round(Int, fraction * length(lines))
+    mkpath(dirname(abspath(output)))
+    open(output, "w") do io
+        foreach(line -> println(io, line), lines[1:keep])
+    end
+    return keep
+end
+
+subset_path(dir::String, dataset::String, fraction::Real)::String =
+    joinpath(dir, "$dataset-$(round(Int, 100 * fraction)).txt")
+
+function read_csv(path::String)::Vector{Dict{String,String}}
+    isfile(path) || return Dict{String,String}[]
+    rows = readlines(path)
+    header = split(rows[1], ',')
+    parse_line(line) = [replace(m.match, r"^\"|\"$" => "", "\"\"" => "\"")
+                        for m in eachmatch(r"\"(?:[^\"]|\"\")*\"|[^,]*", line) if m.offset == 1 ||
+                            line[prevind(line, m.offset)] == ',']
+    return [Dict(String(k) => v for (k, v) in zip(header, parse_line(line))) for line in rows[2:end]]
+end
+
+"""Median/min/max per configuration for runs.csv metrics and per phase for phases.csv."""
+function summarize(run_dir::String)::Nothing
+    keys_run = ["variant", "scope", "dataset", "fraction", "minsup", "emit_mode"]
+    columns = [keys_run; "phase"; "metric"; "median"; "min"; "max"; "n"]
+    path = joinpath(run_dir, "summary.csv")
+    isfile(path) && rm(path)
+    groups = Dict{Vector{String},Vector{Float64}}()
+    for row in read_csv(joinpath(run_dir, "runs.csv"))
+        get(row, "status", "ok") == "ok" || continue
+        for metric in ("phases_total_seconds", "process_wall_seconds", "maxrss_bytes")
+            value = tryparse(Float64, get(row, metric, ""))
+            value === nothing && continue
+            push!(get!(groups, [[row[k] for k in keys_run]; ""; metric], Float64[]), value)
+        end
+    end
+    for row in read_csv(joinpath(run_dir, "phases.csv"))
+        for metric in ("seconds", "bytes", "gc_seconds")
+            value = tryparse(Float64, get(row, metric, ""))
+            value === nothing && continue
+            push!(get!(groups, [[row[k] for k in keys_run]; row["phase"]; metric], Float64[]), value)
+        end
+    end
+    for key in sort!(collect(keys(groups)))
+        values = groups[key]
+        row = Dict{String,Any}(zip(columns, key))
+        row["median"] = median_of(values)
+        row["min"] = minimum(values)
+        row["max"] = maximum(values)
+        row["n"] = length(values)
+        append_csv(path, columns, row)
+    end
+    return nothing
 end
 
 function median_of(xs::Vector{Float64})::Float64

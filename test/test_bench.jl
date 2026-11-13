@@ -42,6 +42,40 @@ end
     @test Bench.select_levels(levels[1:4]) == ["0.8", "0.75"]
 end
 
+@testset "Warm measurement and subsets" begin
+    mktempdir() do dir
+        toy = joinpath(ROOT, "data", "toy", "example.txt")
+        db = open(read_spmf, toy)
+        Bench.warmup!(dir)
+        counted = Bench.measure_warm(db, "0.4", :count, dir)
+        written = Bench.measure_warm(db, "0.4", :write, dir)
+        @test counted["n_patterns"] == written["n_patterns"] == 15
+        @test written["output_bytes"] == sum(ncodeunits(line) + 1 for line in readlines(joinpath(ROOT, "data", "toy", "example.expected.txt")))
+        @test get(counted, "output_bytes", 0) == 0
+        @test Set(keys(counted["phases"])) == Set(["normalize", "prepare", "build_bmc", "collect_nodesets", "mine"])
+        @test counted["phases_total_seconds"] > 0
+        @test isempty(filter(f -> endswith(f, ".txt"), readdir(dir)))
+        sub = joinpath(dir, "sub.txt")
+        @test Bench.prefix_subset(toy, 0.6, sub) == 3
+        @test open(read_spmf, sub) == open(read_spmf, toy)[1:3]
+        run_dir = mkpath(joinpath(dir, "run"))
+        for rep in 1:3
+            row = Dict{String,Any}("run_id" => "r", "variant" => "baseline", "scope" => "warm",
+                "dataset" => "Toy", "fraction" => 1.0, "minsup" => "0.4", "emit_mode" => "count",
+                "repetition" => rep, "phases_total_seconds" => Float64(rep), "status" => "ok")
+            Bench.append_csv(joinpath(run_dir, "runs.csv"), Bench.RUN_COLUMNS, row)
+            for phase in Bench.phase_rows("r", "baseline", "warm", "Toy", 1.0, "0.4", "count", rep,
+                    Dict("mine" => Dict("seconds" => 2.0 * rep, "bytes" => 10 * rep, "gc_seconds" => 0.0)))
+                Bench.append_csv(joinpath(run_dir, "phases.csv"), Bench.PHASE_COLUMNS, phase)
+            end
+        end
+        Bench.summarize(run_dir)
+        summary = readlines(joinpath(run_dir, "summary.csv"))
+        @test any(l -> occursin("Toy", l) && occursin("phases_total_seconds", l) && occursin(",2.0,1.0,3.0", l), summary)
+        @test any(l -> occursin("Toy", l) && occursin("mine", l) && occursin("seconds,4.0,2.0,6.0", l), summary)
+    end
+end
+
 @testset "Cold run smoke" begin
     mktempdir() do dir
         julia = `$(Base.julia_cmd()) --startup-file=no --project=$ROOT`
