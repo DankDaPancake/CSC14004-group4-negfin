@@ -29,3 +29,37 @@ isdefined(Main, :Bench) || include(joinpath(ROOT, "bench", "Bench.jl"))
         @test haskey(env, "cpu_threads") && haskey(env, "total_memory_bytes")
     end
 end
+
+@testset "Pilot level selection" begin
+    levels = [("0.9", 0.001), ("0.85", 0.01), ("0.8", 0.04), ("0.75", 0.2), ("0.7", 1.0),
+              ("0.65", 4.0), ("0.6", 15.0), ("0.55", 50.0), ("0.5", 110.0)]
+    chosen = Bench.select_levels(levels)
+    @test 5 <= length(chosen) <= 7
+    @test "0.5" in chosen                                   # slowest ok level kept
+    @test count(in(["0.9", "0.85", "0.8"]), chosen) == 1    # one level under 0.05 s
+    @test "0.8" in chosen                                   # lowest minsup among fast levels
+    @test chosen == sort(chosen; by=x -> -parse(Float64, x))
+    @test Bench.select_levels(levels[1:4]) == ["0.8", "0.75"]
+end
+
+@testset "Cold run smoke" begin
+    mktempdir() do dir
+        julia = `$(Base.julia_cmd()) --startup-file=no --project=$ROOT`
+        input = joinpath(ROOT, "data", "toy", "example.txt")
+        result = Bench.run_cold(julia, ROOT, input, joinpath(dir, "out.txt"), joinpath(dir, "stats.toml"), "0.4";
+                                timeout_seconds=300, max_output_bytes=10^9)
+        @test result["status"] == "ok"
+        @test result["n_patterns"] == 15
+        @test result["maxrss_bytes"] > 0 && result["process_wall_seconds"] > 0
+        @test result["output_bytes"] > 0 && !isfile(joinpath(dir, "out.txt"))
+        @test haskey(result["phases"], "mine")
+        @test Bench.rss_floor(julia, ROOT) > 0
+        capped = Bench.run_cold(julia, ROOT, input, joinpath(dir, "out2.txt"), joinpath(dir, "s2.toml"), "0.4";
+                                timeout_seconds=300, max_output_bytes=10)
+        @test capped["status"] == "output_cap"
+        slow = Bench.run_cold(julia, ROOT, input, joinpath(dir, "out3.txt"), joinpath(dir, "s3.toml"), "0.4";
+                              timeout_seconds=0.001, max_output_bytes=10^9)
+        @test slow["status"] == "timeout"
+        @test isempty(filter(f -> startswith(f, "out"), readdir(dir)))
+    end
+end
