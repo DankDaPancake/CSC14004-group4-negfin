@@ -23,9 +23,9 @@ function visit!(ctx::MiningContext, core::Vector{Int}, current::Candidate,
     children = Candidate[]
     for sibling in siblings
         negative = if length(core) == 1
-            negative_pair(ctx.nodesets[current.rank], sibling.rank)
+            negative_pair(ctx.nodesets[current.rank], sibling.rank; scanned=ctx.scanned)
         else
-            negative_extension(sibling.negative, current.rank)
+            negative_extension(sibling.negative, current.rank; scanned=ctx.scanned)
         end
         support = extended_support(current.support, negative)
         if support == current.support
@@ -44,29 +44,54 @@ function visit!(ctx::MiningContext, core::Vector{Int}, current::Candidate,
     return count
 end
 
+"""Run `work`; with a hook, time it and report `extra(result)` alongside."""
+function run_phase(work::Function, on_phase, phase::Symbol, extra::Function=_ -> (;))
+    on_phase === nothing && return work()
+    stats = @timed work()
+    on_phase(phase, (; seconds=stats.time, bytes=Int(stats.bytes), gc_seconds=stats.gctime,
+                       extra(stats.value)...))
+    return stats.value
+end
+
 """
-    mine_baseline(db, minsup; emit) -> MiningSummary
+    mine_baseline(db, minsup; emit, on_phase=nothing) -> MiningSummary
 
 Mine all nonempty frequent itemsets using negFIN. `minsup` is an exact
 `Rational{BigInt}`. The callback receives original positive integer IDs,
 sorted ascending, in an independently owned vector, and an integer support.
 Transactions are copied and normalized; repeated transactions remain distinct.
+
+When given, `on_phase(phase, metrics)` is called after each of `:normalize`,
+`:prepare`, `:build_bmc`, `:collect_nodesets` and `:mine` (only the first two
+when no item is frequent). `metrics` has `seconds`, `bytes` (total allocated,
+not peak) and `gc_seconds`, plus phase-specific counters.
 """
-function mine_baseline(db::TransactionDB, minsup::Rational{BigInt}; emit::Function)::MiningSummary
+function mine_baseline(db::TransactionDB, minsup::Rational{BigInt}; emit::Function,
+                       on_phase=nothing)::MiningSummary
     minimum = min_support(minsup, length(db))
-    normalized = TransactionDB()
-    for transaction in db
-        all(>(0), transaction) || throw(ArgumentError("Item IDs must be positive integers"))
-        push!(normalized, sort!(unique(transaction)))
+    normalized = run_phase(on_phase, :normalize) do
+        normalized = TransactionDB()
+        for transaction in db
+            all(>(0), transaction) || throw(ArgumentError("Item IDs must be positive integers"))
+            push!(normalized, sort!(unique(transaction)))
+        end
+        normalized
     end
-    prepared = prepare(normalized, minimum)
+    prepared = run_phase(() -> prepare(normalized, minimum), on_phase, :prepare,
+                         p -> (; n_frequent_items=length(p.items)))
     isempty(prepared.items) && return MiningSummary(length(db), minimum, 0, 0)
-    nodesets = collect_nodesets(build_bmc(prepared), length(prepared.items))
+    tree = run_phase(() -> build_bmc(prepared), on_phase, :build_bmc)
+    nodesets = run_phase(() -> collect_nodesets(tree, length(prepared.items)), on_phase,
+                         :collect_nodesets, n -> (; bmc_nodes=sum(length, n)))
     context = MiningContext(prepared, nodesets)
     roots = [Candidate(rank, prepared.supports[rank], NodeInfo[]) for rank in eachindex(prepared.items)]
-    count = 0
-    for (position, root) in enumerate(roots)
-        count += visit!(context, [root.rank], root, roots[position+1:end], Int[], emit)
+    count = run_phase(on_phase, :mine,
+                      c -> (; negative_records_scanned=context.scanned[], n_patterns=c)) do
+        count = 0
+        for (position, root) in enumerate(roots)
+            count += visit!(context, [root.rank], root, roots[position+1:end], Int[], emit)
+        end
+        count
     end
     return MiningSummary(length(db), minimum, length(prepared.items), count)
 end

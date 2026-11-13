@@ -29,7 +29,11 @@ end
 struct MiningContext
     prepared::PreparedDB
     nodesets::Vector{Vector{NodeInfo}}
+    scanned::Base.RefValue{Int}  # records read by NegNodeset filters
 end
+
+MiningContext(prepared::PreparedDB, nodesets::Vector{Vector{NodeInfo}}) =
+    MiningContext(prepared, nodesets, Ref(0))
 
 struct MiningSummary
     n_transactions::Int
