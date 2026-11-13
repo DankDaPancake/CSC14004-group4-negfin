@@ -101,8 +101,17 @@ function main(args::Vector{String})::Int
     try
         mining = time_ns()
         summary = Ref{MiningSummary}()
+        phases = Dict{String,Any}()
+        counters = Dict{String,Any}()
+        on_phase = options.stats === nothing ? nothing : (phase, metrics) -> begin
+            phases[string(phase)] = Dict{String,Any}("seconds" => metrics.seconds,
+                "bytes" => metrics.bytes, "gc_seconds" => metrics.gc_seconds)
+            for key in (:bmc_nodes, :negative_records_scanned)
+                haskey(metrics, key) && (counters[string(key)] = metrics[key])
+            end
+        end
         staged_write(options.output) do io
-            summary[] = mine_baseline(db, options.minsup;
+            summary[] = mine_baseline(db, options.minsup; on_phase,
                 emit=(items, support) -> write_itemset(io, items, support))
         end
         mine_write_seconds = (time_ns() - mining) / 1e9
@@ -113,7 +122,7 @@ function main(args::Vector{String})::Int
                 "n_transactions" => summary[].n_transactions, "min_count" => summary[].min_count,
                 "n_frequent_items" => summary[].n_frequent_items, "n_patterns" => summary[].n_patterns,
                 "read_seconds" => read_seconds, "mine_write_seconds" => mine_write_seconds,
-                "total_seconds" => total_seconds)
+                "total_seconds" => total_seconds, "phases" => phases, counters...)
             staged_write(io -> TOML.print(io, report), options.stats)
         end
         return 0

@@ -60,7 +60,7 @@ $env:FIM_BENCHMARK_MANIFEST = (Resolve-Path 'data/benchmark/manifest.toml').Path
 julia --project=. test/runtests.jl spmf
 ```
 
-`JAVA_EXE` có thể bỏ nếu `java` đã có trong PATH. Nhóm `spmf` là opt-in; thiếu runtime, file hoặc checksum không khớp sẽ FAIL, không im lặng skip. Kết quả mới ghi ở `results/correctness.toml`, output và log ở `results/spmf/`. Trước khi nộp, bổ sung link dữ liệu ổn định trên Hugging Face/Kaggle theo yêu cầu môn học.
+`JAVA_EXE` có thể bỏ nếu `java` đã có trong PATH. Nhóm `spmf` là opt-in; thiếu runtime, file hoặc checksum không khớp sẽ FAIL, không im lặng skip. Kết quả mới ghi ở `results/correctness.toml`, output và log ở `results/spmf/`. Chess và Accidents có bản giống hệt checksum ở kho FIMI (`mirror_url` trong manifest); chưa có bản Hugging Face/Kaggle khớp, xem [benchmark-baseline.md](docs/validation/benchmark-baseline.md#nguồn-dữ-liệu-công-khai).
 
 Output cuối của lần chạy kiểm chứng:
 
@@ -75,6 +75,20 @@ Reference parser and exact comparison                8/8
 SPMF NegFIN correctness on full benchmark databases 35/35
 ```
 
+## Benchmark Baseline
+
+Harness trong `bench/`, cấu hình ở `bench/config.toml`; kết quả ghi vào `results/bench/<thời điểm>/` (không commit). Cần 5 file ở `data/benchmark/` đúng checksum như trên. Phạm vi đo, số liệu và nhận xét: [docs/validation/benchmark-baseline.md](docs/validation/benchmark-baseline.md).
+
+```powershell
+julia --startup-file=no --project=. bench/pilot.jl --dataset Chess        # chọn minsup: 1 lần cold mỗi mức
+julia --startup-file=no --project=. bench/run.jl --scope warm --dataset Chess
+julia --startup-file=no --project=. bench/run.jl --scope cold --dataset Chess
+julia --startup-file=no --project=. bench/run.jl --scope scalability --dataset Accidents
+julia --startup-file=no --project=. bench/run.jl --all                     # mọi tập trong [selected] + scalability
+```
+
+`--stats` của CLI có thêm `[phases]` và hai bộ đếm; xem [contract](docs/baseline-contract.md#đo-lường).
+
 ## Các sản phẩm còn lại của nhóm
 
-Demo Colab công khai, 2 ứng dụng, benchmark đầy đủ, bản Optimized và `docs/Report.pdf` được bổ sung ở các giai đoạn tương ứng. Repo hiện chưa có các sản phẩm này.
+Demo Colab công khai, 2 ứng dụng, bản Optimized và `docs/Report.pdf` được bổ sung ở các giai đoạn tương ứng. Repo hiện chưa có các sản phẩm này.

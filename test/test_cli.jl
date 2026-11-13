@@ -33,6 +33,10 @@ end
             @test report["n_patterns"] == 15
             @test report["min_count"] == 2
             @test all(report[key] >= 0 for key in ("read_seconds", "mine_write_seconds", "total_seconds"))
+            @test sort(collect(keys(report["phases"]))) == sort(["normalize", "prepare", "build_bmc", "collect_nodesets", "mine"])
+            @test all(report["phases"][p][k] >= 0 for p in keys(report["phases"]) for k in ("seconds", "bytes", "gc_seconds"))
+            @test report["bmc_nodes"] > 0
+            @test report["negative_records_scanned"] >= 0
             @test capture_main(["--help"]).status == 0
             for bad in (["--input"], ["--unknown", "x"], ["--input",input,"--input",input],
                         ["--input",input,"--output",output,"--minsup","0"],
@@ -71,8 +75,12 @@ end
             @test !any(endswith(".tmp"), readdir(dir))
             empty_input = joinpath(dir, "empty.txt")
             write(empty_input, "# metadata only\n")
-            @test capture_main(["--input",empty_input,"--output",output,"--minsup","0.4"]).status == 0
+            empty_stats = joinpath(dir, "empty-stats.toml")
+            @test capture_main(["--input",empty_input,"--output",output,"--minsup","0.4","--stats",empty_stats]).status == 0
             @test isempty(read(output, String))
+            empty_report = TOML.parsefile(empty_stats)
+            @test sort(collect(keys(empty_report["phases"]))) == ["normalize", "prepare"]
+            @test !haskey(empty_report, "bmc_nodes")
             # The real entry point must propagate status to the operating system.
             proc = run(pipeline(ignorestatus(`$(Base.julia_cmd()) --startup-file=no --project=$ROOT $(joinpath(ROOT,"run.jl")) --minsup 0`), stdout=devnull, stderr=devnull))
             @test proc.exitcode == 2

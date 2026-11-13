@@ -1,4 +1,5 @@
 # Full files downloaded from the SPMF dataset catalog; counts describe these exact SHA256 snapshots.
+# mirror_url: an independent public copy with the same SHA256 (checked 2026-11-13).
 
 [[datasets]]
 name = "Chess"
@@ -7,6 +8,7 @@ minsup = "0.9"
 expected_transactions = 3196
 sha256 = "a12ea887df58a396709430af5bf0a9a32d1f6eba8e7c13dd41f28b98572c5db2"
 source_url = "https://www.philippe-fournier-viger.com/spmf/publicdatasets/chess.txt"
+mirror_url = "https://fimi.uantwerpen.be/data/chess.dat"
 
 [[datasets]]
 name = "Mushroom"
@@ -31,6 +33,7 @@ minsup = "0.9"
 expected_transactions = 340183
 sha256 = "8c2275550966e3cb4b6066f2bb168489a9566c500af559fa3925f1b11d97f0cd"
 source_url = "https://www.philippe-fournier-viger.com/spmf/publicdatasets/accidents.txt"
+mirror_url = "https://fimi.uantwerpen.be/data/accidents.dat"
 
 [[datasets]]
 name = "T10I4D100K"

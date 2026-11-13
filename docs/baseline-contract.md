@@ -35,6 +35,8 @@ Mã thoát: 0 thành công hoặc help; 2 tham số/input không hợp lệ; 1 l
 
 Stats TOML chứa số giao dịch, số frequent item, min_count và số mẫu. `read_seconds` đo đọc input; `mine_write_seconds` gồm normalize/prepare, xây cây, Nodeset, khai thác, ghi và rename output. `total_seconds` đo từ đầu main đến lúc output hoàn tất, trước khi ghi stats; không gồm startup/load module trước main. Lần gọi đầu có thể bao gồm JIT ở các phần được đo.
 
+Khi có `--stats`, file còn có bảng `[phases.<tên>]` cho các giai đoạn `normalize`, `prepare`, `build_bmc`, `collect_nodesets`, `mine` (chỉ `normalize`, `prepare` khi không còn item phổ biến), mỗi bảng có `seconds`, `bytes` (tổng byte cấp phát trong giai đoạn, không phải peak) và `gc_seconds`; cùng hai bộ đếm `bmc_nodes` (số node BMC không tính root) và `negative_records_scanned` (tổng record NegNodeset đưa vào các phép lọc). `phases.mine` gồm thời gian ghi output qua `emit` nhưng không gồm rename. API nhận cùng số liệu qua `mine_baseline(...; on_phase=(phase, metrics) -> ...)`; không truyền `on_phase` thì không đo.
+
 Các số trên không phải peak RAM hoặc pure mining time. Hiếu đo wall-clock toàn process/peak RSS bằng harness ngoài; benchmark sau warm-up cần gọi API trong cùng process và mô tả rõ phạm vi đo.
 
 ## Colab và bàn giao
