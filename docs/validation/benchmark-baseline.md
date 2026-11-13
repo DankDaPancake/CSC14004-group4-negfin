@@ -11,6 +11,7 @@
 | Julia | 1.12.0 portable, 1 luồng (`Threads.nthreads() = 1`), `--startup-file=no` |
 | Commit | `3ecd0c1`, working tree sạch (`env.toml`) |
 | Lần chạy chính | `results/bench/20261113-154220/`, 15:42–17:40, 581 lần đo, tất cả `ok` |
+| Harness | chạy ở commit `3ecd0c1`, trước bản sửa runner `c5f3d5b`. Bản sửa chỉ ảnh hưởng tới các lần chạy bị kill vì timeout hoặc output cap; lần chạy chính không có lần nào như vậy, nên số liệu không bị ảnh hưởng |
 | CPU affinity | không đặt; máy có lõi lai P/E |
 
 Dữ liệu: 5 file trong `data/benchmark/`, SHA256 khớp [manifest](../../data/benchmark/manifest.toml) và được kiểm lại trước mỗi lần đo.
@@ -45,13 +46,81 @@ Mỗi tập chạy một thang minsup giảm dần, mỗi mức 1 lần cold, gi
 
 | Tập | Run pilot | Mức đã thử | Mức chọn | Dừng vì |
 |---|---|---|---|---|
+| Chess | `20261113-152931` | 0.9 → 0.3 (13 mức) | 0.9, 0.55, 0.5, 0.45, 0.4, 0.35, 0.3 | hết thang |
+| Retail | `20261113-152726` | 0.01 → 0.001 (8 mức) | 0.01, 0.006, 0.005, 0.004, 0.003, 0.002, 0.001 | hết thang |
+| Mushroom | `20261113-153910` | 0.8 → 0.01 (14 mức) | 0.8, 0.15, 0.1, 0.07, 0.05, 0.03, 0.02 | 0.01 vượt 2 GiB output |
+| Accidents | `20261113-153557` | 0.9 → 0.2 (14 mức) | 0.9, 0.6, 0.45, 0.35, 0.3, 0.25, 0.2 | hết thang |
+| T10I4D100K | `20261113-153310` | 0.02 → 0.002 (7 mức) | cả 7 mức | hết thang |
+
+Số liệu từng mức của pilot (1 lần cold; `mine_write_seconds` gồm JIT, chỉ dùng để xếp hạng):
+
+| Tập | minsup | min_count | Mẫu | Output MiB | mine_write s | Wall s | Peak RSS MiB |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Chess | 0.9 | 2.877 | 622 | 0,0 | 0,713 | 2,788 | 327,0 |
+| Chess | 0.85 | 2.717 | 2.669 | 0,1 | 0,497 | 2,515 | 329,2 |
+| Chess | 0.8 | 2.557 | 8.227 | 0,2 | 0,494 | 2,492 | 327,6 |
+| Chess | 0.75 | 2.397 | 20.993 | 0,6 | 0,502 | 2,558 | 329,0 |
+| Chess | 0.7 | 2.238 | 48.731 | 1,4 | 0,548 | 2,523 | 334,2 |
+| Chess | 0.65 | 2.078 | 111.239 | 3,2 | 0,660 | 2,716 | 354,3 |
+| Chess | 0.6 | 1.918 | 254.944 | 7,7 | 0,874 | 3,163 | 383,8 |
+| Chess | 0.55 | 1.758 | 574.998 | 18,2 | 1,192 | 3,601 | 370,9 |
+| Chess | 0.5 | 1.598 | 1.272.932 | 41,8 | 2,466 | 4,895 | 391,8 |
+| Chess | 0.45 | 1.439 | 2.832.777 | 96,4 | 5,716 | 8,088 | 411,0 |
+| Chess | 0.4 | 1.279 | 6.439.702 | 227,1 | 12,351 | 14,651 | 464,6 |
+| Chess | 0.35 | 1.119 | 15.108.722 | 551,7 | 24,891 | 27,027 | 531,7 |
+| Chess | 0.3 | 959 | 37.282.962 | 1.406,1 | 62,557 | 64,709 | 541,3 |
+| Retail | 0.01 | 882 | 159 | 0,0 | 0,752 | 2,916 | 422,7 |
+| Retail | 0.008 | 706 | 243 | 0,0 | 0,883 | 3,071 | 476,2 |
+| Retail | 0.006 | 529 | 417 | 0,0 | 1,367 | 3,743 | 506,9 |
+| Retail | 0.005 | 441 | 580 | 0,0 | 2,041 | 4,307 | 564,5 |
+| Retail | 0.004 | 353 | 831 | 0,0 | 3,887 | 6,429 | 705,5 |
+| Retail | 0.003 | 265 | 1.393 | 0,0 | 7,747 | 10,137 | 937,0 |
+| Retail | 0.002 | 177 | 2.691 | 0,0 | 18,459 | 20,866 | 1.187,6 |
+| Retail | 0.001 | 89 | 7.589 | 0,1 | 55,380 | 58,116 | 2.051,4 |
+| Mushroom | 0.8 | 6.733 | 17 | 0,0 | 0,489 | 2,535 | 329,9 |
+| Mushroom | 0.7 | 5.892 | 31 | 0,0 | 0,473 | 2,574 | 330,2 |
+| Mushroom | 0.6 | 5.050 | 51 | 0,0 | 0,500 | 2,502 | 330,2 |
+| Mushroom | 0.5 | 4.208 | 163 | 0,0 | 0,474 | 2,518 | 329,6 |
+| Mushroom | 0.4 | 3.367 | 505 | 0,0 | 0,470 | 2,505 | 329,8 |
+| Mushroom | 0.3 | 2.525 | 2.587 | 0,1 | 0,502 | 2,519 | 332,3 |
+| Mushroom | 0.2 | 1.684 | 53.337 | 1,7 | 0,605 | 2,708 | 338,3 |
+| Mushroom | 0.15 | 1.263 | 99.071 | 3,1 | 0,663 | 2,683 | 350,2 |
+| Mushroom | 0.1 | 842 | 600.817 | 20,1 | 1,061 | 3,174 | 342,8 |
+| Mushroom | 0.07 | 590 | 970.105 | 32,1 | 1,425 | 3,634 | 343,4 |
+| Mushroom | 0.05 | 421 | 4.137.547 | 145,4 | 4,522 | 6,669 | 359,2 |
+| Mushroom | 0.03 | 253 | 12.372.681 | 447,3 | 15,574 | 17,749 | 375,7 |
+| Mushroom | 0.02 | 169 | 22.840.275 | 841,6 | 29,470 | 31,796 | 380,8 |
+| Mushroom | 0.01 | – | – | > 2.048 | – | 64,504 | – |
+| Accidents | 0.9 | 306.165 | 31 | 0,0 | 1,917 | 5,095 | 770,8 |
+| Accidents | 0.85 | 289.156 | 71 | 0,0 | 2,375 | 5,883 | 770,0 |
+| Accidents | 0.8 | 272.147 | 149 | 0,0 | 2,274 | 5,689 | 820,8 |
+| Accidents | 0.75 | 255.138 | 313 | 0,0 | 2,724 | 6,279 | 840,7 |
+| Accidents | 0.7 | 238.129 | 529 | 0,0 | 2,764 | 6,064 | 888,9 |
+| Accidents | 0.65 | 221.119 | 1.093 | 0,0 | 2,737 | 6,068 | 863,7 |
+| Accidents | 0.6 | 204.110 | 2.074 | 0,1 | 3,344 | 6,730 | 888,9 |
+| Accidents | 0.5 | 170.092 | 8.057 | 0,2 | 3,801 | 7,156 | 938,1 |
+| Accidents | 0.45 | 153.083 | 16.123 | 0,4 | 5,572 | 9,160 | 1.212,5 |
+| Accidents | 0.4 | 136.074 | 32.528 | 0,9 | 7,147 | 10,591 | 1.498,8 |
+| Accidents | 0.35 | 119.065 | 68.222 | 2,0 | 10,228 | 13,594 | 1.607,3 |
+| Accidents | 0.3 | 102.055 | 149.545 | 4,6 | 14,441 | 17,880 | 1.593,6 |
+| Accidents | 0.25 | 85.046 | 346.525 | 11,1 | 26,856 | 30,192 | 2.028,7 |
+| Accidents | 0.2 | 68.037 | 889.883 | 29,5 | 55,458 | 59,027 | 2.473,0 |
+| T10I4D100K | 0.02 | 2.000 | 155 | 0,0 | 4,064 | 6,694 | 573,4 |
+| T10I4D100K | 0.015 | 1.500 | 237 | 0,0 | 9,063 | 11,678 | 857,9 |
+| T10I4D100K | 0.01 | 1.000 | 385 | 0,0 | 14,771 | 16,953 | 1.097,1 |
+| T10I4D100K | 0.008 | 800 | 494 | 0,0 | 17,617 | 20,116 | 1.359,8 |
+| T10I4D100K | 0.006 | 600 | 772 | 0,0 | 22,277 | 24,691 | 1.469,1 |
+| T10I4D100K | 0.004 | 400 | 2.001 | 0,0 | 32,479 | 34,826 | 1.413,3 |
+| T10I4D100K | 0.002 | 200 | 13.255 | 0,3 | 37,653 | 40,311 | 1.641,5 |
+
+Pilot Chess, Mushroom và Accidents ở bảng trên là lần chạy với thang mở rộng (`20261113-152931`, `20261113-153910`, `20261113-153557`).
 
 - Thang ban đầu của Chess, Mushroom và Accidents quá dễ (mức thấp nhất khai thác dưới 4 s), nên đã được mở rộng và chạy lại pilot.
 - `mine_write_seconds` của lần cold gồm khoảng 0,5 s JIT. Vì vậy các mức dễ của Chess (0.9–0.6) và Mushroom (0.8–0.2) trông gần bằng nhau, và quy tắc chọn nhảy thẳng từ mức đầu xuống 0.55 hoặc 0.15. Nếu báo cáo cần đường cong mượt ở vùng minsup cao, nên thêm các mức trung gian.
 
-## Kết quả warm (median 5 lần)
+## Kết quả warm
 
-Thời gian theo giai đoạn lấy từ chế độ `count`. Cấp phát và GC là của giai đoạn `mine`.
+Median 5 lần, trừ Chess 0.3 và Accidents 0.2 ở chế độ write chỉ chạy 3 lần (lần đầu vượt 60 s). Thời gian theo giai đoạn lấy từ chế độ `count`. Cấp phát và GC là của giai đoạn `mine`.
 
 | Tập | minsup | min_count | Mẫu | Output MiB | normalize+prepare s | build_bmc s | mine s | Tổng count s | Tổng write s | Ghi output s | Cấp phát mine MiB | GC mine s | Node BMC | Record NegNodeset quét |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -91,7 +160,7 @@ Thời gian theo giai đoạn lấy từ chế độ `count`. Cấp phát và GC
 | T10I4D100K | 0.004 | 400 | 2.001 | 0,0 | 0,082 | 0,529 | 21,743 | 22,399 | 22,505 | * | 12.827,3 | 6,311 | 671.294 | 170.059.239 |
 | T10I4D100K | 0.002 | 200 | 13.255 | 0,3 | 0,075 | 0,543 | 25,943 | 26,808 | 26,967 | * | 15.615,6 | 7,452 | 703.369 | 204.597.875 |
 
-`collect_nodesets` luôn dưới 0,25 s và không được tách thành cột riêng; `normalize+prepare` là tổng hai giai đoạn. Thời gian đọc file (`read_seconds`, đo một lần): Chess 0,011 s, Mushroom 0,010 s, Retail 0,097 s, T10I4D100K 0,454 s, Accidents 1,438 s.
+`collect_nodesets` có median dưới 0,25 s ở mọi cấu hình (lần đo lớn nhất 0,45 s) và không được tách thành cột riêng; `normalize+prepare` là tổng hai giai đoạn. Thời gian đọc file (`read_seconds`, đo một lần): Chess 0,011 s, Mushroom 0,010 s, Retail 0,097 s, T10I4D100K 0,454 s, Accidents 1,438 s.
 
 \* Chênh lệch `write − count` nhỏ hơn độ dao động giữa các lần lặp (có khi âm), nên không dùng được làm chi phí ghi output.
 
@@ -155,9 +224,12 @@ Lấy tiền tố 20/40/60/80/100% giao dịch, giữ minsup tương đối cố
 | T10I4D100K | 0.004 | 1,0 | 100.000 | 2.001 | 21,279 | 0,509 | 0,078 | 21,934 | 23,016 | 1.424,9 | 671.294 | 170.059.239 |
 
 - Số mẫu gần như không đổi theo kích thước dữ liệu: Accidents khoảng 345 nghìn, T10I4D100K khoảng 2.000. Vì vậy scalability ở đây đo chi phí theo N với cùng một đầu ra.
-- **T10I4D100K:** từ 20% lên 100% dữ liệu (5 lần), `mine` tăng 6,3 lần (3,4 → 21,3 s). Số record NegNodeset quét tăng 4,8 lần, node BMC tăng 4,6 lần.
-- **Accidents:** cùng 5 lần dữ liệu, `mine` tăng 3,4 lần (4,9 → 16,9 s), record quét tăng 2,6 lần.
+Ở phần scalability, warm và cold cho giai đoạn `mine` gần nhau (lệch dưới 10% ở mọi tỷ lệ), nên các tỷ lệ dưới đây ít bị ảnh hưởng bởi độ dao động của warm. Tỷ lệ tính theo `mine` của warm, trong ngoặc là cold:
+
+- **T10I4D100K:** từ 20% lên 100% dữ liệu (5 lần), `mine` tăng 6,3 lần (3,4 → 21,3 s), theo cold là 5,2 lần (3,8 → 19,6 s). Số record NegNodeset quét tăng 4,8 lần, node BMC tăng 4,6 lần. Như vậy `mine` tăng gần tuyến tính theo số record quét; chưa đủ cơ sở để nói tăng siêu tuyến tính.
+- **Accidents:** cùng 5 lần dữ liệu, `mine` tăng 3,4 lần (4,9 → 16,9 s), theo cold là 3,1 lần (5,3 → 16,6 s). Record quét tăng 2,6 lần.
 - Peak RSS tăng 2,3–2,5 lần trên cả hai tập.
+- **Hai số đo cho cùng cấu hình Accidents 0.25 ở 100% dữ liệu lệch nhau.** Bảng warm chính cho `mine` median 22,9 s (từng lần 23,5 / 23,7 / 18,2 / 16,4 / 22,9 s), còn bảng scalability cho 16,9 s (20,2 / 17,3 / 16,9 / 16,1 / 16,8 s). Phép đo cold cho 17,2–18,7 s ở bảng chính và 15,9–16,9 s ở scalability. Đây là cùng một tập giao dịch: file con 100% có SHA256 khác file gốc chỉ vì `prefix_subset` bỏ khoảng trắng cuối dòng, nội dung từng dòng giống hệt sau khi bỏ khoảng trắng đó. Vì vậy khoảng lệch này là độ dao động của phép đo warm, không phải khác biệt của dữ liệu.
 
 ## Nhận xét điểm nghẽn ban đầu
 
@@ -180,16 +252,16 @@ Hai nhóm tập dữ liệu cho hai hình thái khác nhau.
   - Chi phí trên mỗi mẫu tương đối ổn định: 0,48–0,73 µs ở Chess (0.55–0.3), 0,17–0,30 µs ở Mushroom (0.15–0.02).
 - **Tập thưa (Retail, T10I4D100K) và Accidents: `mine` bám theo số record NegNodeset quét, không theo số mẫu.**
   - Retail 0.001 chỉ có 7.589 mẫu nhưng quét 320 triệu record, khoảng 42.000 record cho mỗi mẫu.
-  - Thời gian trên mỗi record quét gần như không đổi khi tính bằng giai đoạn `mine` của phép đo cold: Retail 100–113 ns/record (0.006–0.001), T10I4D100K 111–120 ns/record (cả 7 mức). Ở hai tập này output dưới 0,3 MiB nên `mine` cold gần như chỉ là khai thác. Số đo warm cho cùng tỷ lệ dao động hơn nhiều (77–162 ns/record ở Retail), xem [độ tin cậy](#độ-tin-cậy-của-số-đo-warm).
+  - Thời gian trên mỗi record quét gần như không đổi khi tính bằng giai đoạn `mine` của phép đo cold: Retail 100–113 ns/record (0.006–0.001), T10I4D100K 111–120 ns/record (cả 7 mức). Ở hai tập này output dưới 0,3 MiB nên `mine` cold gần như chỉ là khai thác. Số đo warm cho cùng tỷ lệ dao động hơn nhiều (median 77–162 ns/record ở Retail; từng lần lên tới khoảng 190), xem [độ tin cậy](#độ-tin-cậy-của-số-đo-warm).
   - Scalability T10I4D100K cũng cho thấy điều này: số mẫu giữ khoảng 2.000 nhưng `mine` tăng theo record quét.
 
 ### 3. Chi phí ghi output
 
-- **Tập dày: ghi output là điểm nghẽn lớn nhất.**
-  - Chess 0.3: ghi output 44,4 s trên tổng 62,3 s (71%).
-  - Mushroom 0.02: ghi output 24,1 s trên tổng 28,0 s (86%).
-  - Tính trên mỗi byte output, chi phí khoảng 30 ns/byte ở Chess 0.3–0.4 và 26–28 ns/byte ở Mushroom 0.02–0.05.
-  - Độ dao động giữa các lần lặp nhỏ so với các chênh lệch này: giai đoạn `mine` của Chess 0.3 là 17,5–18,4 s ở chế độ count và 59,1–62,7 s ở chế độ write.
+- **Tập dày: ghi output chiếm khoảng một nửa đến bốn phần năm thời gian `mine`.** Có hai cách ước lượng, cho kết quả khác nhau:
+  - **Theo cold:** `mine` của cold (gồm ghi output) trừ `mine` của warm count. Chess 0.3: 21,3 s trên 39,1 s (54%), khoảng 14 ns/byte. Mushroom 0.02: 14,6 s trên 18,4 s (79%), khoảng 17 ns/byte.
+  - **Theo warm:** `mine` của warm write trừ `mine` của warm count. Chess 0.3: 44,4 s trên 62,3 s (71%), khoảng 30 ns/byte. Mushroom 0.02: 24,1 s trên 27,9 s (86%), khoảng 27 ns/byte.
+  - Phép đo warm write ở các cấu hình này chậm hơn cold một cách nhất quán (Chess 0.3: 59,1–62,7 s so với 39,1–39,5 s). Vì vậy ước lượng theo warm có thể cao gấp khoảng 2 lần thực tế. Nên dùng ước lượng theo cold làm mốc chính, ước lượng theo warm làm cận trên.
+  - Theo cold, tỷ lệ này là 45–54% ở Chess (0.45–0.3) và 75–79% ở Mushroom (0.05–0.02); chi phí khoảng 14 ns/byte ở Chess và 16–18 ns/byte ở Mushroom.
 - **Tập thưa: output dưới 0,3 MiB.** Ở đây chi phí ghi nhỏ hơn nhiều so với độ dao động của số đo, nên không ước lượng được bằng `write − count`.
 
 ### 4. Cấp phát và GC trong `mine`
@@ -217,7 +289,7 @@ Hai nhóm tập dữ liệu cho hai hình thái khác nhau.
 
 1. **Thay bitmap `BigInt` bằng mảng `UInt64` cố định độ rộng** hoặc bitset tự quản lý. Mục tiêu là giảm cấp phát và thời gian trên mỗi record quét (100–120 ns ở tập thưa).
 2. **Tái sử dụng buffer cho NegNodeset** thay vì tạo vector mới ở mỗi lần lọc. Mục tiêu là giảm tổng cấp phát và phần GC 14–32% của `mine`.
-3. **Ghi output trực tiếp vào buffer byte** thay vì `join` và `println` cho từng mẫu. Mục tiêu là chi phí 26–30 ns/byte, chiếm 71–86% thời gian ở tập dày.
+3. **Ghi output trực tiếp vào buffer byte** thay vì `join` và `println` cho từng mẫu. Mục tiêu là chi phí 14–18 ns/byte theo cold (cận trên 26–30 ns/byte theo warm), chiếm 45–79% thời gian `mine` ở tập dày theo cold.
 4. **Tránh tạo vector ID mới cho mỗi mẫu trong `emit_family!`** khi người gọi không cần giữ lại vector (khoảng 420 byte/mẫu ở Chess).
 
 ## Độ tin cậy của số đo warm
@@ -246,6 +318,13 @@ Tra cứu ngày 13/11/2026:
 
 | Tập | File FIMI | SHA256 FIMI | Số dòng | So với manifest |
 |---|---|---|---:|---|
+| Chess | `chess.dat` | `a12ea887df58a396709430af5bf0a9a32d1f6eba8e7c13dd41f28b98572c5db2` | 3.196 | **khớp** |
+| Accidents | `accidents.dat` | `8c2275550966e3cb4b6066f2bb168489a9566c500af559fa3925f1b11d97f0cd` | 340.183 | **khớp** |
+| Retail | `retail.dat` | `d967431ba522e32f0fbb243f2ee113ecd4cb374cb0234c1b0858dae1d499a055` | 88.162 | khác: file SPMF bằng file FIMI với mọi ID cộng 1, nếu bỏ qua khoảng trắng cuối dòng |
+| T10I4D100K | `T10I4D100K.dat` | `464d7b87aa7fdc0dc432ddad0493515569b2968b0f229ce39399c454a8c62e0c` | 100.000 | khác: cùng quan hệ ID cộng 1 |
+| Mushroom | `mushroom.dat` | `6cf94bc482712c3936f0b40c921381ab2b776c3d9941880fecac4d83ca5cbeb5` | 8.124 | khác: đây là một tập dữ liệu khác, không phải bản đổi định dạng |
+
+Quan hệ "ID cộng 1" được kiểm bằng cách cộng 1 vào mọi ID của file FIMI, bỏ khoảng trắng cuối dòng ở cả hai file rồi so từng dòng (`diff` không có khác biệt).
 
 - Manifest đã có `mirror_url` cho Chess và Accidents.
 - Retail và T10I4D100K trên FIMI chỉ khác do đổi ID. ID trong FIMI bắt đầu từ 0, trong khi định dạng SPMF và parser của nhóm yêu cầu ID dương. Kết quả khai thác sẽ giống nhau sau khi trừ 1 vào ID, nhưng chưa được chạy kiểm chứng.
