@@ -11,7 +11,7 @@
 | Julia | 1.12.0 portable, 1 luồng (`Threads.nthreads() = 1`), `--startup-file=no` |
 | Commit | `3ecd0c1`, working tree sạch (`env.toml`) |
 | Lần chạy chính | `results/bench/20261113-154220/`, 15:42–17:40, 581 lần đo, tất cả `ok` |
-| Harness | chạy ở commit `3ecd0c1`, trước bản sửa runner `c5f3d5b`. Bản sửa chỉ ảnh hưởng tới các lần chạy bị kill vì timeout hoặc output cap; lần chạy chính không có lần nào như vậy, nên số liệu không bị ảnh hưởng |
+| Harness | chạy ở commit `3ecd0c1`, trước bản sửa runner `c5f3d5b`. Bản sửa chỉ ảnh hưởng tới các lần chạy bị kill vì timeout hoặc output cap; lần chạy chính không có lần nào như vậy, nên số liệu không bị ảnh hưởng. Bản sửa `9ddef4c` (bỏ biến bị box trong `mine_baseline`) cũng đến sau lần chạy này. Ảnh hưởng của riêng bản sửa này chưa được đo trực tiếp. Đã đo: Baseline gốc (`origin/main`, không có hook) so với bản đã sửa, trên Chess 0.4, cùng một process, 15 lần xen kẽ: median 2,404 s và 2,384 s, chênh dưới 1%. Như vậy hook và bản sửa không làm thay đổi đáng kể các con số dưới đây |
 | CPU affinity | không đặt; máy có lõi lai P/E |
 
 Dữ liệu: 5 file trong `data/benchmark/`, SHA256 khớp [manifest](../../data/benchmark/manifest.toml) và được kiểm lại trước mỗi lần đo.
