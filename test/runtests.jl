@@ -9,7 +9,7 @@ if isfile(joinpath(ROOT, "src", "NegFIN.jl"))
     using .NegFIN
 end
 
-const LOCAL_GROUPS = ["io", "tree", "negnodesets", "mining", "phases", "cli", "differential", "reference"]
+const LOCAL_GROUPS = ["io", "tree", "negnodesets", "mining", "phases", "cli", "differential", "reference", "bench"]
 groups = isempty(ARGS) ? filter(g -> isfile(joinpath(@__DIR__, "test_$g.jl")), LOCAL_GROUPS) : ARGS
 for group in groups
     group in [LOCAL_GROUPS; "spmf"] || error("Unknown test group: $group")
