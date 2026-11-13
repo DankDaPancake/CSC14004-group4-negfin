@@ -70,12 +70,12 @@ function mine_baseline(db::TransactionDB, minsup::Rational{BigInt}; emit::Functi
                        on_phase=nothing)::MiningSummary
     minimum = min_support(minsup, length(db))
     normalized = run_phase(on_phase, :normalize) do
-        normalized = TransactionDB()
+        copies = TransactionDB()
         for transaction in db
             all(>(0), transaction) || throw(ArgumentError("Item IDs must be positive integers"))
-            push!(normalized, sort!(unique(transaction)))
+            push!(copies, sort!(unique(transaction)))
         end
-        normalized
+        copies
     end
     prepared = run_phase(() -> prepare(normalized, minimum), on_phase, :prepare,
                          p -> (; n_frequent_items=length(p.items)))
@@ -85,13 +85,13 @@ function mine_baseline(db::TransactionDB, minsup::Rational{BigInt}; emit::Functi
                          :collect_nodesets, n -> (; bmc_nodes=sum(length, n)))
     context = MiningContext(prepared, nodesets)
     roots = [Candidate(rank, prepared.supports[rank], NodeInfo[]) for rank in eachindex(prepared.items)]
-    count = run_phase(on_phase, :mine,
-                      c -> (; negative_records_scanned=context.scanned[], n_patterns=c)) do
-        count = 0
+    patterns = run_phase(on_phase, :mine,
+                         c -> (; negative_records_scanned=context.scanned[], n_patterns=c)) do
+        emitted = 0
         for (position, root) in enumerate(roots)
-            count += visit!(context, [root.rank], root, roots[position+1:end], Int[], emit)
+            emitted += visit!(context, [root.rank], root, roots[position+1:end], Int[], emit)
         end
-        count
+        emitted
     end
-    return MiningSummary(length(db), minimum, length(prepared.items), count)
+    return MiningSummary(length(db), minimum, length(prepared.items), patterns)
 end

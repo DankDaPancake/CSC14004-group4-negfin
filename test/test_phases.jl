@@ -33,6 +33,10 @@ end
         @test metrics[:collect_nodesets].bmc_nodes == sum(length, nodesets)
     end
     @test Dict(mine_with_phases(toy, big(2)//big(5)).phases)[:mine].negative_records_scanned > 0
+    # Phase closures must not capture and reassign mine_baseline's locals (boxed => untyped).
+    body = only(methods(getfield(NegFIN, only(n for n in names(NegFIN; all=true)
+        if startswith(string(n), "#mine_baseline#") && !occursin("##", string(n))))))
+    @test !any(stmt -> occursin("Core.Box", string(stmt)), Base.uncompressed_ir(body).code)
     for (db, minsup) in [([[1], [2]], big(1)//big(1)), (Vector{Int}[], big(1)//big(2))]
         empty = mine_with_phases(db, minsup)
         @test first.(empty.phases) == [:normalize, :prepare]
