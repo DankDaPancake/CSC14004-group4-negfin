@@ -118,11 +118,16 @@ function select_levels(levels::Vector{Tuple{String,Float64}}; min_count::Int=5, 
     return [usable[i][1] for i in sort!(collect(picked))]
 end
 
-"""Total size of files under `dir` modified after `since` (staged output is a temp sibling)."""
-function new_bytes(dir::String, since::Float64)::Int
+"""
+Bytes the CLI has written for `output` since `since`: the output itself plus its
+staged `mktemp` sibling (`jl_*`). Stats and other harness files do not count.
+"""
+function staged_bytes(output::String, since::Float64)::Int
+    dir = dirname(abspath(output))
     total = 0
     for name in readdir(dir)
         path = joinpath(dir, name)
+        (path == abspath(output) || startswith(name, "jl_")) || continue
         isfile(path) && mtime(path) >= since && (total += filesize(path))
     end
     return total
@@ -150,7 +155,7 @@ function run_cold(julia::Cmd, repo::String, input::String, output::String, stats
         elapsed = (time_ns() - started) / 1e9
         if elapsed > timeout_seconds
             status = "timeout"
-        elseif new_bytes(out_dir, started_at) > max_output_bytes
+        elseif staged_bytes(output, started_at) > max_output_bytes
             status = "output_cap"
         end
         if status != "ok"
@@ -170,8 +175,7 @@ function run_cold(julia::Cmd, repo::String, input::String, output::String, stats
             status = "output_cap"
         end
     end
-    isfile(stats) && merge!(result, TOML.parsefile(stats))
-    isfile(maxrss_path) && (result["maxrss_bytes"] = TOML.parsefile(maxrss_path)["maxrss_bytes"])
+    merge!(result, child_reports(stats, maxrss_path; killed=status in ("timeout", "output_cap") && process.exitcode != 0))
     isfile(output) && rm(output)
     # A killed child can leave its staged temp file behind.
     for name in readdir(out_dir)
@@ -180,6 +184,18 @@ function run_cold(julia::Cmd, repo::String, input::String, output::String, stats
     end
     result["status"] = status
     return result
+end
+
+"""
+Stats and peak RSS written by a cold child. A killed child may have left either
+file half-written, so nothing it reported is trusted.
+"""
+function child_reports(stats::String, maxrss_path::String; killed::Bool)::Dict{String,Any}
+    reports = Dict{String,Any}()
+    killed && return reports
+    isfile(stats) && merge!(reports, TOML.parsefile(stats))
+    isfile(maxrss_path) && (reports["maxrss_bytes"] = TOML.parsefile(maxrss_path)["maxrss_bytes"])
+    return reports
 end
 
 function rss_floor(julia::Cmd, repo::String)::Int

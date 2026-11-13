@@ -76,6 +76,28 @@ end
     end
 end
 
+@testset "Output cap counts only CLI output" begin
+    mktempdir() do dir
+        since = time() - 1
+        write(joinpath(dir, "out.txt"), "12345")
+        write(joinpath(dir, "jl_staged"), "1234567")
+        write(joinpath(dir, "stats.toml"), "x"^100)          # harness side files must not count
+        write(joinpath(dir, "stats.toml.maxrss.toml"), "y"^50)
+        @test Bench.staged_bytes(joinpath(dir, "out.txt"), since) == 12
+    end
+end
+
+@testset "Reports of a killed child are ignored" begin
+    mktempdir() do dir
+        stats = joinpath(dir, "s.toml"); maxrss = joinpath(dir, "m.toml")
+        write(stats, "n_patterns = 15\n")
+        write(maxrss, "")                       # killed while writing: empty file
+        @test isempty(Bench.child_reports(stats, maxrss; killed=true))
+        write(maxrss, "maxrss_bytes = 42\n")
+        @test Bench.child_reports(stats, maxrss; killed=false) == Dict{String,Any}("n_patterns" => 15, "maxrss_bytes" => 42)
+    end
+end
+
 @testset "Cold run smoke" begin
     mktempdir() do dir
         julia = `$(Base.julia_cmd()) --startup-file=no --project=$ROOT`
