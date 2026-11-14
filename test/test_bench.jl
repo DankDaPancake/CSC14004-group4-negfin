@@ -49,6 +49,11 @@ end
         Bench.warmup!(dir)
         counted = Bench.measure_warm(db, "0.4", :count, dir)
         written = Bench.measure_warm(db, "0.4", :write, dir)
+        optimized_counted = Bench.measure_warm(db, "0.4", :count, dir; variant=:optimized)
+        optimized_written = Bench.measure_warm(db, "0.4", :write, dir; variant=:optimized)
+        @test optimized_counted["n_patterns"] == optimized_written["n_patterns"] == 15
+        @test optimized_written["output_bytes"] == written["output_bytes"]
+        @test_throws ArgumentError Bench.measure_warm(db, "0.4", :count, dir; variant=:unknown)
         @test counted["n_patterns"] == written["n_patterns"] == 15
         @test written["output_bytes"] == sum(ncodeunits(line) + 1 for line in readlines(joinpath(ROOT, "data", "toy", "example.expected.txt")))
         @test get(counted, "output_bytes", 0) == 0
@@ -109,6 +114,11 @@ end
         @test result["maxrss_bytes"] > 0 && result["process_wall_seconds"] > 0
         @test result["output_bytes"] > 0 && !isfile(joinpath(dir, "out.txt"))
         @test haskey(result["phases"], "mine")
+        optimized = Bench.run_cold(julia, ROOT, input, joinpath(dir, "out-opt.txt"), joinpath(dir, "stats-opt.toml"), "0.4";
+                                   timeout_seconds=300, max_output_bytes=10^9, variant=:optimized)
+        @test optimized["status"] == "ok"
+        @test optimized["n_patterns"] == 15
+        @test TOML.parsefile(joinpath(dir, "stats-opt.toml"))["variant"] == "optimized"
         @test Bench.rss_floor(julia, ROOT) > 0
         capped = Bench.run_cold(julia, ROOT, input, joinpath(dir, "out2.txt"), joinpath(dir, "s2.toml"), "0.4";
                                 timeout_seconds=300, max_output_bytes=10)

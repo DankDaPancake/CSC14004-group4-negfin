@@ -7,7 +7,7 @@ julia --project=. run.jl --input data/toy/example.txt --output results/toy.txt -
 julia --project=. test/runtests.jl
 ```
 
-`--input`, `--output`, `--minsup` bắt buộc. `--variant` mặc định `baseline`, hiện chưa có `optimized`. `--stats` tùy chọn.
+`--input`, `--output`, `--minsup` bắt buộc. `--variant` mặc định `baseline`; `optimized` là variant thử nghiệm dùng bitmap `UInt64` cho phép lọc NegNodeset. `--stats` tùy chọn.
 
 ```julia
 include("src/NegFIN.jl")
@@ -17,7 +17,7 @@ summary = mine_baseline(db, parse_minsup("0.4");
     emit=(items, support) -> println(items, " => ", support))
 ```
 
-`items` là vector ID gốc tăng dần, có thể giữ lại an toàn; `support` là số giao dịch. API tự copy/normalize giao dịch; giữ riêng các giao dịch giống nhau. File giao dịch chỉ có metadata được xem là DB rỗng; API cũng nhận giao dịch rỗng và vẫn tính chúng vào mẫu số N.
+`items` là vector ID gốc tăng dần, có thể giữ lại an toàn; `support` là số giao dịch. API tự copy/normalize giao dịch; giữ riêng các giao dịch giống nhau. File giao dịch chỉ có metadata được xem là DB rỗng; API cũng nhận giao dịch rỗng và vẫn tính chúng vào mẫu số N. API `mine_optimized` nhận cùng tham số và callback như `mine_baseline`.
 
 ## Input và minsup
 
@@ -36,6 +36,8 @@ Mã thoát: 0 thành công hoặc help; 2 tham số/input không hợp lệ; 1 l
 Stats TOML chứa số giao dịch, số frequent item, min_count và số mẫu. `read_seconds` đo đọc input; `mine_write_seconds` gồm normalize/prepare, xây cây, Nodeset, khai thác, ghi và rename output. `total_seconds` đo từ đầu main đến lúc output hoàn tất, trước khi ghi stats; không gồm startup/load module trước main. Lần gọi đầu có thể bao gồm JIT ở các phần được đo.
 
 Khi có `--stats`, file còn có bảng `[phases.<tên>]` cho các giai đoạn `normalize`, `prepare`, `build_bmc`, `collect_nodesets`, `mine` (chỉ `normalize`, `prepare` khi không còn item phổ biến), mỗi bảng có `seconds`, `bytes` (tổng byte cấp phát trong giai đoạn, không phải peak) và `gc_seconds`; cùng hai bộ đếm `bmc_nodes` (số node BMC không tính root) và `negative_records_scanned` (tổng record NegNodeset đưa vào các phép lọc). `phases.mine` gồm thời gian ghi output qua `emit` nhưng không gồm rename. API nhận cùng số liệu qua `mine_baseline(...; on_phase=(phase, metrics) -> ...)`; không truyền `on_phase` thì không đo.
+
+Với `optimized`, `collect_nodesets` bao gồm chuyển bitmap từ BMC BigInt sang vector `UInt64`; so sánh các giai đoạn phải tính thêm chi phí này. Cây BMC vẫn dùng BigInt, và peak RSS cần đo độc lập.
 
 Các số trên không phải peak RAM hoặc pure mining time. Hiếu đo wall-clock toàn process/peak RSS bằng harness ngoài; benchmark sau warm-up cần gọi API trong cùng process và mô tả rõ phạm vi đo.
 

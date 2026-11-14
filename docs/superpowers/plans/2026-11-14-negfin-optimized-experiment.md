@@ -4,10 +4,12 @@
 
 **Ràng buộc:** Giữ `baseline` và API/CLI hiện tại; không sửa input, ngưỡng, support hoặc ownership của vector callback. Chỉ thêm variant riêng, không dùng thư viện FIM. Git branch feature mới từ `main` sau khi công việc phân tích được tích hợp.
 
+**Tiến độ:** Đã có variant thử nghiệm và [pilot](../../validation/optimized-pilot.md). BMC vẫn dùng BigInt, bitmap Nodeset được chuyển sang word khi thu thập; điều này tạo trade-off RAM và khác với ý tưởng thay bitmap toàn bộ cây. Các ô bên dưới chỉ hoàn tất sau khi đáp ứng toàn bộ nội dung, kể cả CI và benchmark đầy đủ.
+
 ## 1. Xây và kiểm chứng bitmap
 
 - [ ] Trước khi code, xác định cách lưu bitmap theo số word, ánh xạ rank sang bit, và quy tắc chia sẻ bất biến giữa BMC-node/NodeInfo. Đo chi phí cấp phát, bộ nhớ và phép thử bit; không giả định `Vector{UInt64}` luôn tốt hơn `BigInt`.
-- [ ] Viết test RED→GREEN cho kiểm tra bit tại rank 1, 64, 65, 70 và lớn hơn; bitmap rỗng và bitmap có nhiều word; NodeInfo dùng chung không bị thay đổi.
+- [x] Viết test RED→GREEN cho kiểm tra bit tại rank 1, 64, 65, 70 và lớn hơn; bitmap rỗng và bitmap có nhiều word; phép đọc không thay đổi vector bitmap.
 - [ ] Viết test NegNodeset pair/extension và weighted support so với Baseline trên bitmap nhiều word, bao gồm bit vị trí cao.
 
 ## 2. Tích hợp variant và correctness

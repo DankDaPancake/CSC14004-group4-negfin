@@ -138,7 +138,8 @@ Run the CLI in a child process and return status, wall time, peak RSS, output si
 and stats. The output is deleted afterwards; the stats file is kept.
 """
 function run_cold(julia::Cmd, repo::String, input::String, output::String, stats::String, minsup::String;
-                  timeout_seconds::Real, max_output_bytes::Integer)::Dict{String,Any}
+                  timeout_seconds::Real, max_output_bytes::Integer, variant::Symbol=:baseline)::Dict{String,Any}
+    variant in (:baseline, :optimized) || throw(ArgumentError("Unknown variant: $variant"))
     out_dir = dirname(abspath(output))
     mkpath(out_dir)
     maxrss_path = stats * ".maxrss.toml"
@@ -146,7 +147,7 @@ function run_cold(julia::Cmd, repo::String, input::String, output::String, stats
     for path in (output, stats, maxrss_path)
         isfile(path) && rm(path)
     end
-    cmd = `$julia $(joinpath(repo, "bench", "cold_run.jl")) --maxrss $maxrss_path --input $input --output $output --minsup $minsup --stats $stats`
+    cmd = `$julia $(joinpath(repo, "bench", "cold_run.jl")) --maxrss $maxrss_path --input $input --output $output --minsup $minsup --variant $(string(variant)) --stats $stats`
     started_at = time()
     started = time_ns()
     process = run(pipeline(cmd; stdout=devnull, stderr=errlog); wait=false)
@@ -237,8 +238,10 @@ end
 Mine `db` once in this process with the phase hook. `:count` only counts patterns;
 `:write` formats them into a file under `tmpdir` like the CLI, then deletes it.
 """
-function measure_warm(db::Vector{Vector{Int}}, minsup::String, emit_mode::Symbol, tmpdir::String)::Dict{String,Any}
+function measure_warm(db::Vector{Vector{Int}}, minsup::String, emit_mode::Symbol, tmpdir::String; variant::Symbol=:baseline)::Dict{String,Any}
     emit_mode in (:count, :write) || throw(ArgumentError("emit_mode must be :count or :write"))
+    variant in (:baseline, :optimized) || throw(ArgumentError("Unknown variant: $variant"))
+    miner = variant == :baseline ? NegFIN.mine_baseline : NegFIN.mine_optimized
     phases = Dict{String,Any}()
     counters = Dict{String,Any}()
     on_phase = (phase, metrics) -> begin
@@ -253,11 +256,11 @@ function measure_warm(db::Vector{Vector{Int}}, minsup::String, emit_mode::Symbol
     result = Dict{String,Any}()
     if emit_mode == :count
         emitted = Ref(0)
-        summary = NegFIN.mine_baseline(db, ratio; on_phase, emit=(items, support) -> (emitted[] += 1))
+        summary = miner(db, ratio; on_phase, emit=(items, support) -> (emitted[] += 1))
     else
         path, io = mktemp(tmpdir)
         try
-            summary = NegFIN.mine_baseline(db, ratio; on_phase,
+            summary = miner(db, ratio; on_phase,
                 emit=(items, support) -> NegFIN.write_itemset(io, items, support))
             close(io)
             result["output_bytes"] = filesize(path)
@@ -277,10 +280,10 @@ function measure_warm(db::Vector{Vector{Int}}, minsup::String, emit_mode::Symbol
 end
 
 """Compile the measured code paths on the toy database before timing anything."""
-function warmup!(tmpdir::String)::Nothing
+function warmup!(tmpdir::String; variant::Symbol=:baseline)::Nothing
     db = open(NegFIN.read_spmf, joinpath(dirname(@__DIR__), "data", "toy", "example.txt"))
     for mode in (:count, :write)
-        measure_warm(db, "0.4", mode, tmpdir)
+        measure_warm(db, "0.4", mode, tmpdir; variant)
     end
     return nothing
 end

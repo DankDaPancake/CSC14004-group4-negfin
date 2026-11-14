@@ -61,13 +61,13 @@ function run_warm(ctx::Context, scope::String, dataset::String, fraction::Real, 
     tmp = mkpath(joinpath(ctx.run_dir, "tmp"))
     read_stats = @timed open(NegFIN.read_spmf, input)
     db = read_stats.value
-    Bench.warmup!(tmp)
+    Bench.warmup!(tmp; variant=Symbol(variant(ctx)))
     for minsup in levels, mode in (:count, :write)
         repetitions = ctx.config["warm_repetitions"]
         rep = 0
         while rep < repetitions
             rep += 1
-            result = Bench.measure_warm(db, minsup, mode, tmp)
+            result = Bench.measure_warm(db, minsup, mode, tmp; variant=Symbol(variant(ctx)))
             rep == 1 && result["phases_total_seconds"] > ctx.config["warm_long_threshold_seconds"] &&
                 (repetitions = ctx.config["warm_long_repetitions"])
             row = Dict{String,Any}("run_id" => ctx.run_id, "variant" => variant(ctx), "scope" => scope,
@@ -92,7 +92,8 @@ function run_cold(ctx::Context, scope::String, dataset::String, fraction::Real, 
     for minsup in levels, rep in 1:ctx.config["cold_repetitions"]
         stats = joinpath(tmp, "$dataset-$fraction-$minsup-$rep.stats.toml")
         result = Bench.run_cold(ctx.julia, ctx.repo, input, joinpath(tmp, "$dataset-cold.txt"), stats, minsup;
-            timeout_seconds=ctx.config["cold_timeout_seconds"], max_output_bytes=ctx.config["max_output_bytes"])
+            timeout_seconds=ctx.config["cold_timeout_seconds"], max_output_bytes=ctx.config["max_output_bytes"],
+            variant=Symbol(variant(ctx)))
         row = Bench.cold_row(ctx.run_id, variant(ctx), scope, dataset, fraction, digest, minsup, rep, result, floor)
         write_rows(ctx, row, get(result, "phases", Dict{String,Any}()), scope, dataset, fraction, minsup, "cli", rep)
         println("$scope $dataset f=$fraction minsup=$minsup cli rep=$rep wall=",
@@ -135,6 +136,7 @@ function main(args::Vector{String})
     options = parse_args(args)
     config_path = get(options, "--config", joinpath(repo, "bench", "config.toml"))
     config = Bench.load_config(config_path)
+    get(config, "variant", nothing) in ("baseline", "optimized") || error("variant must be baseline or optimized")
     manifest_path = joinpath(repo, config["manifest"])
     manifest = TOML.parsefile(manifest_path)
     data_dir = get(options, "--data-dir", dirname(manifest_path))

@@ -37,10 +37,18 @@ end
             @test all(report["phases"][p][k] >= 0 for p in keys(report["phases"]) for k in ("seconds", "bytes", "gc_seconds"))
             @test report["bmc_nodes"] > 0
             @test report["negative_records_scanned"] >= 0
+            optimized_output = joinpath(dir, "optimized.txt")
+            optimized_stats = joinpath(dir, "optimized.toml")
+            optimized = capture_main(["--input",input,"--output",optimized_output,"--minsup","0.4", "--variant","optimized", "--stats", optimized_stats])
+            @test optimized.status == 0
+            if optimized.status == 0
+                @test sort(readlines(optimized_output)) == sort(readlines(output))
+                @test TOML.parsefile(optimized_stats)["variant"] == "optimized"
+            end
             @test capture_main(["--help"]).status == 0
             for bad in (["--input"], ["--unknown", "x"], ["--input",input,"--input",input],
                         ["--input",input,"--output",output,"--minsup","0"],
-                        ["--input",input,"--output",output,"--minsup","0.4","--variant","optimized"])
+                        ["--input",input,"--output",output,"--minsup","0.4","--variant","unknown"])
                 @test capture_main(bad).status == 2
             end
             @test capture_main(["--input",joinpath(dir,"missing"),"--output",output,"--minsup","0.4"]).status == 2

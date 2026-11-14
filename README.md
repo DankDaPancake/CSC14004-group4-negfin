@@ -18,9 +18,12 @@ Julia >= 1.9; đang kiểm chứng bằng Julia 1.12.0 trên Windows x64. Chỉ 
 ```text
 julia --project=. test/runtests.jl
 julia --project=. run.jl --input data/toy/example.txt --output results/toy.txt --minsup 0.4 --variant baseline --stats results/toy.stats.toml
+julia --project=. run.jl --input data/toy/example.txt --output results/toy-optimized.txt --minsup 0.4 --variant optimized --stats results/toy-optimized.stats.toml
 ```
 
-Ví dụ có 5 giao dịch, min_count=2; đầu ra kỳ vọng là 15 mẫu trong `data/toy/example.expected.txt`. Chưa có bản Optimized.
+Ví dụ có 5 giao dịch, min_count=2; đầu ra kỳ vọng là 15 mẫu trong `data/toy/example.expected.txt`. Variant `--variant optimized` là thí nghiệm bitmap word, giữ BMC-tree BigInt và chuyển Nodeset trước khi khai thác; cần benchmark đầy đủ trước khi kết luận về hiệu năng.
+
+Kết quả correctness và pilot trên ba workload, bao gồm trường hợp peak RAM tăng: [optimized-pilot.md](docs/validation/optimized-pilot.md).
 
 - [Quy ước CLI/I/O và phạm vi đo](docs/baseline-contract.md)
 - [Yêu cầu và phạm vi đồ án](docs/project-requirements.md)
