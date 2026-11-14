@@ -10,7 +10,11 @@ Kiểm tra trên gói `results/handoff/benchmark-baseline-20261113/full-run/2026
 - `phases.csv`: 2.905 dòng, đủ 5 dòng trên mỗi lượt, không có khóa phase mồ côi. Đây là kiểm tra số dòng; chưa xác nhận danh tính đầy đủ của cả năm phase.
 - Tính lại độc lập từ `runs.csv` và `phases.csv`: đủ 2.250 nhóm trong `summary.csv`, không trùng khóa, không thiếu nhóm, không sai median/min/max/n trong dung sai số thực 1e-11 tương đối hoặc 1e-9 tuyệt đối.
 - Đối chiếu 35 dòng bảng cold với ba lượt raw mỗi cấu hình: median/min/max của wall và peak RSS khớp sau làm tròn (lần lượt sai số tối đa 0,00051 giây và 0,051 MiB). Chưa đối chiếu toàn bộ bảng warm, scalability hoặc số lượng itemset trong báo cáo.
+- Kiểm tra tên phase: từng lượt có đúng một mỗi tên normalize, prepare, build_bmc, collect_nodesets và mine. Kiểm tra 35 dòng warm: min_count, n_patterns, bmc_nodes, negative_records_scanned, median build_bmc và mine khớp. Với 10 dòng scalability, cold median wall và RSS khớp. Các cột khác chưa được kiểm toán đầy đủ.
+- Kiểm tra thêm 210 giá trị trên 35 dòng warm: output, normalize+prepare, tổng count/write, cấp phát mine và GC khớp trong dung sai làm tròn. Kiểm tra thêm 80 giá trị trên 10 dòng scalability: số giao dịch, mẫu, mine, build, normalize+prepare, tổng warm, node và record quét khớp. Ở đây normalize+prepare là tổng hai median theo cách bảng báo cáo được xây dựng; đồ thị mới dùng median của tổng theo từng lượt.
+- Đối chiếu 90 tổ hợp metric/cấu hình của đồ thị cold/scalability với các nhóm `summary.csv`: median/min/max/n khớp trong dung sai số thực. Kiểm tra 12 ô hiệu write−count có giá trị số và 35 ô RSS trừ nền: đều khớp trong dung sai làm tròn; các ô `*`/`≈0` không được kiểm định số. Hai phép trừ vẫn là ước lượng, không phải số đo trực tiếp.
+- Trên 43 nhóm dataset/minsup/fraction, các counter có mặt trong `runs.csv` nhất quán; SHA256 input của tất cả run warm/cold trên tập đầy đủ khớp `env.toml`. Không suy diễn checksum tập con từ checksum tập đầy đủ.
 
 ## Bước tiếp theo
 
-Kiểm tra phase name và tính nhất quán counters/hash theo cấu hình; đối chiếu các bảng warm và scalability với dữ liệu thô. Sau đó tạo biểu đồ từ CSV thay vì bảng báo cáo đã làm tròn. Khi profiling, giữ code Baseline nguyên vẹn, đo overhead, ghi commit/dataset/minsup và so mẫu kết quả.
+Biểu đồ đã được dựng từ CSV. Khi profiling, giữ code Baseline nguyên vẹn, đo overhead, ghi commit/dataset/minsup và so mẫu kết quả. Dữ liệu gốc và summary nhất quán không đồng nghĩa phương pháp đo không có bias.

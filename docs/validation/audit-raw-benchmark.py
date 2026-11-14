@@ -21,6 +21,9 @@ dimensions = ['variant', 'scope', 'dataset', 'fraction', 'minsup', 'emit_mode']
 run_key = ['run_id', *dimensions, 'repetition']
 run_counts = collections.Counter(tuple(row[k] for k in run_key) for row in runs)
 phase_counts = collections.Counter(tuple(row[k] for k in run_key) for row in phases)
+phase_names = collections.defaultdict(list)
+for row in phases:
+    phase_names[tuple(row[k] for k in run_key)].append(row['phase'])
 groups = collections.defaultdict(list)
 for row in runs:
     if row['status'] == 'ok':
@@ -37,6 +40,9 @@ if any(count != 1 for count in run_counts.values()):
     errors.append('duplicate run key')
 if set(run_counts) != set(phase_counts) or any(count != 5 for count in phase_counts.values()):
     errors.append('phase/run keys or phase row counts differ')
+required = {'normalize', 'prepare', 'build_bmc', 'collect_nodesets', 'mine'}
+if any(set(names) != required or len(names) != len(set(names)) for names in phase_names.values()):
+    errors.append('invalid phase names')
 seen = set()
 for row in summary:
     key = tuple(row[k] for k in dimensions) + (row['phase'], row['metric'])

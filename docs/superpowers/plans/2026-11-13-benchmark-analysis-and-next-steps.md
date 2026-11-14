@@ -21,6 +21,6 @@
 ## 3. Hướng công việc tiếp theo
 
 - [x] Xác định workload đại diện và đề xuất profiling BigInt, NegNodeset và output trong `docs/validation/benchmark-analysis.md`.
-- [ ] Sau profiling, lập kế hoạch Optimized chi tiết: giữ Baseline, kiểm chứng oracle/SPMF và benchmark hai phiên bản cùng điều kiện, nêu cả trường hợp chậm hơn hoặc tăng bộ nhớ.
+- [x] Sau profiling pilot, lập kế hoạch Optimized riêng: giữ Baseline, kiểm chứng oracle/SPMF và benchmark hai phiên bản cùng điều kiện, nêu cả trường hợp chậm hơn hoặc tăng bộ nhớ. Profiling chính xác hơn vẫn còn trong kế hoạch ngày 14/11.
 - [x] Liệt kê dữ liệu thô cần Hiếu bàn giao, các mức scalability cần bổ sung, nguồn dữ liệu ổn định, và công việc ứng dụng/Colab song song.
 - [ ] Kiểm tra tài liệu và biểu đồ; chuẩn bị PR theo quy định repository khi phần việc đã hoàn tất.
