@@ -128,9 +128,11 @@ end
         capped = Bench.run_cold(julia, ROOT, input, joinpath(dir, "out2.txt"), joinpath(dir, "s2.toml"), "0.4";
                                 timeout_seconds=300, max_output_bytes=10)
         @test capped["status"] == "output_cap"
+        @test capped["process_wall_seconds"] < 30
         slow = Bench.run_cold(julia, ROOT, input, joinpath(dir, "out3.txt"), joinpath(dir, "s3.toml"), "0.4";
                               timeout_seconds=0.001, max_output_bytes=10^9)
         @test slow["status"] == "timeout"
+        @test slow["process_wall_seconds"] < 30
         @test isempty(filter(f -> startswith(f, "out"), readdir(dir)))
     end
 end

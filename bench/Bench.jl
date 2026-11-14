@@ -160,7 +160,9 @@ function run_cold(julia::Cmd, repo::String, input::String, output::String, stats
             status = "output_cap"
         end
         if status != "ok"
-            kill(process)
+            # SIGTERM can leave Julia stuck during startup or output, making
+            # the following wait unbounded. A capped run must stop promptly.
+            Sys.isunix() ? kill(process, Base.SIGKILL) : kill(process)
             break
         end
         sleep(0.2)
