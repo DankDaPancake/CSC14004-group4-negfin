@@ -39,7 +39,8 @@ function pilot(args::Vector{String})
     for minsup in config["ladders"][name]
         stats = joinpath(tmp, "$name-$minsup.stats.toml")
         result = Bench.run_cold(julia, repo, input, joinpath(tmp, "$name-$minsup.txt"), stats, minsup;
-            timeout_seconds=config["pilot_timeout_seconds"], max_output_bytes=config["max_output_bytes"])
+            timeout_seconds=config["pilot_timeout_seconds"], max_output_bytes=config["max_output_bytes"],
+            variant=Symbol(config["variant"]))
         row = Bench.cold_row(run_id, config["variant"], "pilot", name, 1.0, digest, minsup, 1, result, floor)
         Bench.append_csv(joinpath(run_dir, "pilot.csv"), Bench.RUN_COLUMNS, row)
         phases = get(result, "phases", Dict{String,Any}())

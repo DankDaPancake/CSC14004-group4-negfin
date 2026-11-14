@@ -60,6 +60,14 @@ end
             @test !isempty(actual)
             @test length(actual) == length(reference)
             @test differences == (; missing=0, extra=0, support_mismatch=0)
+            optimized_path = joinpath(directory, "$name.optimized.txt")
+            optimized_status = NegFIN.main(["--input",input,"--output",optimized_path,
+                                            "--minsup",entry["minsup"],"--variant","optimized"])
+            @test optimized_status == 0
+            optimized_status == 0 || error("Optimized variant failed for $name")
+            optimized = open(read_patterns, optimized_path)
+            optimized_differences = compare_patterns(optimized, reference)
+            @test optimized_differences == (; missing=0, extra=0, support_mismatch=0)
             row = Dict{String,Any}(
                 "name"=>name, "source_url"=>entry["source_url"], "input_sha256"=>digest,
                 "scope"=>"full", "n_transactions"=>n, "minsup"=>entry["minsup"],
@@ -67,13 +75,23 @@ end
                 "julia_patterns"=>length(actual), "spmf_patterns"=>length(reference),
                 "missing"=>differences.missing, "extra"=>differences.extra,
                 "support_mismatch"=>differences.support_mismatch,
+                "optimized_patterns"=>length(optimized), "optimized_missing"=>optimized_differences.missing,
+                "optimized_extra"=>optimized_differences.extra,
+                "optimized_support_mismatch"=>optimized_differences.support_mismatch,
                 "julia_pipeline_seconds"=>actual_seconds, "spmf_process_seconds"=>reference_seconds)
+            @test get(row, "optimized_patterns", nothing) == length(optimized)
+            @test get(row, "optimized_missing", nothing) == 0
+            @test get(row, "optimized_extra", nothing) == 0
+            @test get(row, "optimized_support_mismatch", nothing) == 0
             push!(report["datasets"], row)
-            println("$name: full N=$n, patterns=$(length(actual)), missing=$(differences.missing), extra=$(differences.extra), support_mismatch=$(differences.support_mismatch)")
+            println("$name: full N=$n, baseline=$(length(actual)) $differences, optimized=$(length(optimized)) $optimized_differences")
             flush(stdout)
             open(joinpath(ROOT,"results","correctness.toml"), "w") do io
                 TOML.print(io, report)
             end
+            saved = TOML.parsefile(joinpath(ROOT,"results","correctness.toml"))["datasets"][end]
+            @test all(saved[key] == row[key] for key in ("optimized_patterns", "optimized_missing",
+                "optimized_extra", "optimized_support_mismatch"))
         end
     end
 end

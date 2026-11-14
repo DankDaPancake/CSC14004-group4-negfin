@@ -49,6 +49,11 @@ end
         Bench.warmup!(dir)
         counted = Bench.measure_warm(db, "0.4", :count, dir)
         written = Bench.measure_warm(db, "0.4", :write, dir)
+        optimized_counted = Bench.measure_warm(db, "0.4", :count, dir; variant=:optimized)
+        optimized_written = Bench.measure_warm(db, "0.4", :write, dir; variant=:optimized)
+        @test optimized_counted["n_patterns"] == optimized_written["n_patterns"] == 15
+        @test optimized_written["output_bytes"] == written["output_bytes"]
+        @test_throws ArgumentError Bench.measure_warm(db, "0.4", :count, dir; variant=:unknown)
         @test counted["n_patterns"] == written["n_patterns"] == 15
         @test written["output_bytes"] == sum(ncodeunits(line) + 1 for line in readlines(joinpath(ROOT, "data", "toy", "example.expected.txt")))
         @test get(counted, "output_bytes", 0) == 0
@@ -93,6 +98,11 @@ end
         write(stats, "n_patterns = 15\n")
         write(maxrss, "")                       # killed while writing: empty file
         @test isempty(Bench.child_reports(stats, maxrss; killed=true))
+        # A capped child can report exitcode 0 even after the output-cap
+        # decision; its empty/partial reports must still be ignored.
+        @test isempty(Bench.child_reports(stats, maxrss; status="output_cap", exitcode=0))
+        @test isempty(Bench.child_reports(stats, maxrss; status="timeout", exitcode=0))
+        @test isempty(Bench.child_reports(stats, maxrss; status="error", exitcode=1))
         write(maxrss, "maxrss_bytes = 42\n")
         @test Bench.child_reports(stats, maxrss; killed=false) == Dict{String,Any}("n_patterns" => 15, "maxrss_bytes" => 42)
     end
@@ -109,13 +119,20 @@ end
         @test result["maxrss_bytes"] > 0 && result["process_wall_seconds"] > 0
         @test result["output_bytes"] > 0 && !isfile(joinpath(dir, "out.txt"))
         @test haskey(result["phases"], "mine")
+        optimized = Bench.run_cold(julia, ROOT, input, joinpath(dir, "out-opt.txt"), joinpath(dir, "stats-opt.toml"), "0.4";
+                                   timeout_seconds=300, max_output_bytes=10^9, variant=:optimized)
+        @test optimized["status"] == "ok"
+        @test optimized["n_patterns"] == 15
+        @test TOML.parsefile(joinpath(dir, "stats-opt.toml"))["variant"] == "optimized"
         @test Bench.rss_floor(julia, ROOT) > 0
         capped = Bench.run_cold(julia, ROOT, input, joinpath(dir, "out2.txt"), joinpath(dir, "s2.toml"), "0.4";
                                 timeout_seconds=300, max_output_bytes=10)
         @test capped["status"] == "output_cap"
+        @test capped["process_wall_seconds"] < 30
         slow = Bench.run_cold(julia, ROOT, input, joinpath(dir, "out3.txt"), joinpath(dir, "s3.toml"), "0.4";
                               timeout_seconds=0.001, max_output_bytes=10^9)
         @test slow["status"] == "timeout"
+        @test slow["process_wall_seconds"] < 30
         @test isempty(filter(f -> startswith(f, "out"), readdir(dir)))
     end
 end

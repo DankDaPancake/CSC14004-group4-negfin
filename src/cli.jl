@@ -1,7 +1,7 @@
 const USAGE = """
-negFIN Baseline (Julia)
+negFIN (Julia)
 Usage: julia --project=. run.jl --input FILE --output FILE --minsup RATIO
-       [--variant baseline] [--stats FILE.toml]
+       [--variant baseline|optimized] [--stats FILE.toml]
 RATIO is a decimal in (0, 1], for example 0.4. Support in output is a count.
 """
 
@@ -23,9 +23,9 @@ function parse_cli(args::Vector{String})::CLIOptions
         haskey(options, required) || throw(ArgumentError("Required option: $required"))
     end
     variant = get(options, "--variant", "baseline")
-    variant == "baseline" || throw(ArgumentError("Only --variant baseline is implemented"))
+    variant in ("baseline", "optimized") || throw(ArgumentError("Variant must be baseline or optimized"))
     return CLIOptions(options["--input"], options["--output"],
-                      parse_minsup(options["--minsup"]), :baseline, get(options, "--stats", nothing))
+                      parse_minsup(options["--minsup"]), Symbol(variant), get(options, "--stats", nothing))
 end
 
 # Resolve existing ancestors as well as symlinks, including outputs not created yet.
@@ -111,14 +111,15 @@ function main(args::Vector{String})::Int
             end
         end
         staged_write(options.output) do io
-            summary[] = mine_baseline(db, options.minsup; on_phase,
+            miner = options.variant == :baseline ? mine_baseline : mine_optimized
+            summary[] = miner(db, options.minsup; on_phase,
                 emit=(items, support) -> write_itemset(io, items, support))
         end
         mine_write_seconds = (time_ns() - mining) / 1e9
         total_seconds = (time_ns() - started) / 1e9
         if options.stats !== nothing
             report = Dict{String,Any}(
-                "variant" => "baseline", "julia_version" => string(VERSION),
+                "variant" => string(options.variant), "julia_version" => string(VERSION),
                 "n_transactions" => summary[].n_transactions, "min_count" => summary[].min_count,
                 "n_frequent_items" => summary[].n_frequent_items, "n_patterns" => summary[].n_patterns,
                 "read_seconds" => read_seconds, "mine_write_seconds" => mine_write_seconds,
