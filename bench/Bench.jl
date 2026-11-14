@@ -176,7 +176,7 @@ function run_cold(julia::Cmd, repo::String, input::String, output::String, stats
             status = "output_cap"
         end
     end
-    merge!(result, child_reports(stats, maxrss_path; killed=status in ("timeout", "output_cap") && process.exitcode != 0))
+    merge!(result, child_reports(stats, maxrss_path; status, exitcode=process.exitcode))
     isfile(output) && rm(output)
     # A killed child can leave its staged temp file behind.
     for name in readdir(out_dir)
@@ -191,9 +191,10 @@ end
 Stats and peak RSS written by a cold child. A killed child may have left either
 file half-written, so nothing it reported is trusted.
 """
-function child_reports(stats::String, maxrss_path::String; killed::Bool)::Dict{String,Any}
+function child_reports(stats::String, maxrss_path::String; killed::Bool=false,
+                       status::String="ok", exitcode::Int=0)::Dict{String,Any}
     reports = Dict{String,Any}()
-    killed && return reports
+    (killed || status != "ok" || exitcode != 0) && return reports
     isfile(stats) && merge!(reports, TOML.parsefile(stats))
     isfile(maxrss_path) && (reports["maxrss_bytes"] = TOML.parsefile(maxrss_path)["maxrss_bytes"])
     return reports

@@ -98,6 +98,11 @@ end
         write(stats, "n_patterns = 15\n")
         write(maxrss, "")                       # killed while writing: empty file
         @test isempty(Bench.child_reports(stats, maxrss; killed=true))
+        # A capped child can report exitcode 0 even after the output-cap
+        # decision; its empty/partial reports must still be ignored.
+        @test isempty(Bench.child_reports(stats, maxrss; status="output_cap", exitcode=0))
+        @test isempty(Bench.child_reports(stats, maxrss; status="timeout", exitcode=0))
+        @test isempty(Bench.child_reports(stats, maxrss; status="error", exitcode=1))
         write(maxrss, "maxrss_bytes = 42\n")
         @test Bench.child_reports(stats, maxrss; killed=false) == Dict{String,Any}("n_patterns" => 15, "maxrss_bytes" => 42)
     end
