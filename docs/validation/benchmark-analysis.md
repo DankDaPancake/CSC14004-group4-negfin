@@ -1,6 +1,6 @@
 # Phân tích sơ bộ benchmark Baseline
 
-Nguồn: các bảng trong [benchmark-baseline.md](benchmark-baseline.md), báo cáo bởi Hiếu cho lượt chạy 13/11/2026 trên commit `3ecd0c1`. Biểu đồ được dựng lại từ số liệu đã làm tròn trong báo cáo, **không phải từ dữ liệu thô**. Lượt đo dùng Julia 1.12.0 một luồng, Windows 11, i5-13600K và RAM 31,75 GiB; xem báo cáo nguồn về cấu hình và các sửa đổi sau lượt chạy.
+Nguồn: các bảng trong [benchmark-baseline.md](benchmark-baseline.md), báo cáo bởi Hiếu cho lượt chạy 13/11/2026 trên commit `3ecd0c1`. Biểu đồ được dựng lại từ số liệu đã làm tròn trong báo cáo, **không phải từ dữ liệu thô**. Gói số liệu thô đã được giữ local tại `results/handoff/benchmark-baseline-20261113/`; xem [hướng dẫn bàn giao](benchmark-handoff.md). Lượt đo dùng Julia 1.12.0 một luồng, Windows 11, i5-13600K và RAM 31,75 GiB; xem báo cáo nguồn về cấu hình và các sửa đổi sau lượt chạy.
 
 ## Hình và cách đọc
 
@@ -28,7 +28,7 @@ Tái tạo bằng `python docs/validation/plot-benchmark.py` sau khi cài matplo
 
 ## Công việc tiếp theo đề xuất
 
-1. Hiếu cung cấp số liệu thô gồm cấu hình, từng lần đo, trạng thái và checksum; đối chiếu 581 lượt với báo cáo. Ghi rõ nơi lưu dữ liệu và quyền truy cập; không tự đưa dữ liệu lớn lên Git.
+1. Đối chiếu đầy đủ 581 lượt số liệu thô đã nhận với báo cáo và cập nhật đồ thị từ CSV; hiện mới kiểm tra số lượt, trạng thái và một số giá trị đại diện. Ghi rõ nơi lưu dữ liệu và quyền truy cập; không tự đưa dữ liệu lớn lên Git.
 2. Đo bổ sung scalability ở 10/25/50/75/100% hoặc xác nhận thay thế được chấp nhận. Ghi phương pháp lấy mẫu, thứ tự, seed nếu có và số mẫu; tiền tố có thể mang thiên lệch theo thứ tự dữ liệu.
 3. Trên Retail 0,001 và Chess 0,3, profiling riêng chi phí quét NegNodeset, phép toán bitmap, tạo vector và ghi output; lặp thêm một workload Accidents để kiểm tra RAM. Các nguồn cấp phát này hiện là giả thuyết.
 4. Sau profiling, lập kế hoạch Optimized theo một giả thuyết tại một thời điểm. Giữ Baseline BigInt và contract callback; kiểm chứng oracle, toàn bộ test và SPMF, rồi so runtime, RSS và output trong cùng môi trường và phạm vi. Báo cả trường hợp không cải thiện.
