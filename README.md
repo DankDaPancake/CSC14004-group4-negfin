@@ -92,6 +92,20 @@ julia --startup-file=no --project=. bench/run.jl --all                     # m�
 
 `--stats` của CLI có thêm `[phases]` và hai bộ đếm; xem [contract](docs/baseline-contract.md#đo-lường).
 
+## Hai ứng dụng và demo Colab
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/DankDaPancake/CSC14004-group4-negfin/blob/main/notebooks/demo.ipynb)
+
+[notebooks/demo.ipynb](notebooks/demo.ipynb) cài Julia 1.12.0 (kiểm SHA-256), clone repo ở `REF`, tải dữ liệu UCI theo [manifest](data/applications/manifest.toml) và chạy CLI negFIN của nhóm cho cả hai ứng dụng; Python chỉ tiền xử lý/hậu xử lý. Mở bằng nút trên rồi **Runtime → Run all**. Notebook cũng chạy được trên máy local khi mở trong thư mục repo (cần Julia trong PATH, Python ≥ 3.11 với `pandas`, `openpyxl`).
+
+- Giỏ hàng — UCI Online Retail, luật kết hợp: [kết quả](docs/applications-retail-results.md)
+- Sinh học — UCI Splice-junction, pattern vị trí–base theo lớp: [kết quả](docs/applications-splice-results.md)
+- Dữ liệu, cách tạo transaction và quyết định cần chốt: [đề xuất](docs/applications-proposal.md)
+
+```text
+python -m unittest discover -s apps/tests
+```
+
 ## Các sản phẩm còn lại của nhóm
 
-Demo Colab công khai, 2 ứng dụng, bản Optimized và `docs/Report.pdf` được bổ sung ở các giai đoạn tương ứng. Repo hiện chưa có các sản phẩm này.
+`docs/Report.pdf` được bổ sung ở giai đoạn tương ứng.
