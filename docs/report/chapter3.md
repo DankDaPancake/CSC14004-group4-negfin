@@ -143,7 +143,7 @@ Itemset chỉ biểu diễn đồng xuất hiện của các base ở vị trí 
 
 ## D. Tái lập và kiểm chứng
 
-Notebook `notebooks/demo.ipynb` cài Julia 1.12.0 (kiểm SHA-256), lấy mã nguồn ở commit chỉ định, tải hai bộ dữ liệu và kiểm checksum, rồi chạy lần lượt ví dụ toy, ứng dụng 1 và ứng dụng 2 qua `run.jl`; cell cuối in commit, phiên bản Julia và mọi tham số. Các bước kiểm chứng đã thực hiện:
+Notebook `notebooks/demo.ipynb` dùng Julia có sẵn hoặc tự cài Julia 1.12.0 (kiểm SHA-256), lấy mã nguồn ở commit chỉ định, tải hai bộ dữ liệu và kiểm checksum, rồi chạy lần lượt ví dụ toy, ứng dụng 1 và ứng dụng 2 qua `run.jl`; cell cuối in commit, phiên bản Julia và mọi tham số. Notebook đã được chạy Run all trên runtime Colab mới ở commit `7e3e9b0` với Julia 1.12.6, cho đúng các số liệu trong chương này; bản có output được chia sẻ công khai tại liên kết trong README. Các bước kiểm chứng đã thực hiện:
 
 - 12 unit test Python cho tiền xử lý, sinh luật và so sánh lớp, gồm ví dụ tính tay trên CSDL toy.
 - 19 luật khác nhau trong Bảng III và mười luật lift cao nhất được tính lại support, confidence, lift trực tiếp từ file transaction, không qua negFIN: khớp hoàn toàn.
