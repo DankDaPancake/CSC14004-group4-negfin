@@ -96,7 +96,9 @@ julia --startup-file=no --project=. bench/run.jl --all                     # m�
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/DankDaPancake/CSC14004-group4-negfin/blob/main/notebooks/demo.ipynb)
 
-[notebooks/demo.ipynb](notebooks/demo.ipynb) cài Julia 1.12.0 (kiểm SHA-256), clone repo ở `REF`, tải dữ liệu UCI theo [manifest](data/applications/manifest.toml) và chạy CLI negFIN của nhóm cho cả hai ứng dụng; Python chỉ tiền xử lý/hậu xử lý. Mở bằng nút trên rồi **Runtime → Run all**. Notebook cũng chạy được trên máy local khi mở trong thư mục repo (cần Julia trong PATH, Python ≥ 3.11 với `pandas`, `openpyxl`).
+**Demo Colab công khai (đã chạy, có output):** https://colab.research.google.com/drive/1pJe52lmSifBrkAPLPTveoU6NEuCgR2Aw?usp=sharing — Run all trên runtime Colab mới ở commit `7e3e9b0`, Julia 1.12.6 có sẵn của Colab; kết quả: retail 2.026 itemset, 962 luật; splice EI 280, IE 331, N 0 itemset.
+
+[notebooks/demo.ipynb](notebooks/demo.ipynb) dùng `julia` có sẵn hoặc tự cài Julia 1.12.0 (kiểm SHA-256), clone repo ở `REF`, tải dữ liệu UCI theo [manifest](data/applications/manifest.toml) và chạy CLI negFIN của nhóm cho cả hai ứng dụng; Python chỉ tiền xử lý/hậu xử lý. Mở bằng nút trên rồi **Runtime → Run all**. Notebook cũng chạy được trên máy local khi mở trong thư mục repo (cần Julia trong PATH, Python ≥ 3.11 với `pandas`, `openpyxl`).
 
 - Giỏ hàng — UCI Online Retail, luật kết hợp: [kết quả](docs/applications-retail-results.md)
 - Sinh học — UCI Splice-junction, pattern vị trí–base theo lớp: [kết quả](docs/applications-splice-results.md)
