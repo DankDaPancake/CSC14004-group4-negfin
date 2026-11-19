@@ -17,10 +17,28 @@ end
         left, right = joinpath(dir, "left.txt"), joinpath(dir, "right.txt")
         write(left, "1 2 #SUP: 3\n")
         write(right, "1 2 #SUP: 4\n")
-        result = compare_outputs(left, right)
+        result = compare_outputs(left, right; chunk_size=7)
         @test !result.equal
         @test result.left_sha256 != result.right_sha256
+        write(left, "abcdefgh"^4096)
+        write(right, "abcdefgh"^4096)
+        equal_result = compare_outputs(left, right; chunk_size=7)
+        @test equal_result.equal
+        @test equal_result.left_sha256 == equal_result.right_sha256
+        write(right, "different-at-end")
+        final_result = compare_outputs(left, right; chunk_size=7)
+        @test !final_result.equal
+        @test final_result.left_sha256 != final_result.right_sha256
+        @test_throws ArgumentError compare_outputs(left, right; chunk_size=0)
+        @test_throws ErrorException compare_outputs(left, right; max_bytes=1)
     end
+end
+
+@testset "Pair validator enforces CLI output cap and timeout" begin
+    @test hasmethod(validate_pair, Tuple{String,String,String,String})
+    @test_throws ArgumentError validate_pair(ROOT, joinpath(ROOT, "data", "toy", "example.txt"), "0.4", tempdir(); max_output_bytes=0)
+    @test_throws ErrorException validate_pair(ROOT, joinpath(ROOT, "data", "toy", "example.txt"), "0.4", tempdir(); max_output_bytes=1)
+    @test_throws ArgumentError validate_pair(ROOT, joinpath(ROOT, "data", "toy", "example.txt"), "0.4", tempdir(); timeout_seconds=0.0)
 end
 
 @testset "Benchmark configs include all scalability cases" begin
