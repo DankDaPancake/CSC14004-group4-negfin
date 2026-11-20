@@ -31,6 +31,23 @@ end
         @test final_result.left_sha256 != final_result.right_sha256
         @test_throws ArgumentError compare_outputs(left, right; chunk_size=0)
         @test_throws ErrorException compare_outputs(left, right; max_bytes=1)
+        staged = joinpath(dir, "jl_staged.tmp")
+        write(staged, "x"^2048)
+        @test staged_output_bytes(dir, time() - 1) == 2048
+        @test staged_output_bytes(dir, time() - 1; max_bytes=1024) == 2048
+    end
+end
+
+@testset "Streaming pattern validation avoids CLI output files" begin
+    mktempdir() do dir
+        toy = joinpath(ROOT, "data", "toy", "example.txt")
+        streamed = validate_pair_stream(toy, "0.4")
+        cli = validate_pair(ROOT, toy, "0.4", dir)
+        @test streamed.equal
+        @test streamed.baseline_patterns == streamed.optimized_patterns == 15
+        @test streamed.baseline_sha256 == cli.baseline_sha256
+        @test streamed.optimized_sha256 == cli.optimized_sha256
+        @test isempty(readdir(dir))
     end
 end
 
