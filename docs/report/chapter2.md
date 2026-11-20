@@ -1,6 +1,6 @@
 # Chương 2. Đánh giá thực nghiệm Baseline và Optimized
 
-> **Trạng thái:** bản nháp số liệu ngày 19-11-2026. Bảng cold/warm/scalability được tổng hợp từ raw runs cùng máy. Đã tạo biểu đồ scalability HTML/SVG; chưa tạo biểu đồ ladder cold. ZIP bàn giao local đã tạo và kiểm SHA256; chưa có PR.
+Số liệu ngày 19-11-2026 được đối chiếu với gói bàn giao của Hiếu. Gói có 110 tệp khớp SHA-256. Phân tích dùng 1.560 lượt hợp lệ trên cùng một máy, sau khi loại 5 dòng chạy thử Chess không có cặp Optimized.
 
 ## 2.1. Mục tiêu
 
@@ -18,10 +18,17 @@ Chương này so sánh hai biến thể Baseline và Optimized của negFIN tron
 | Warm | đo trong process sau warm-up, tách `count` và `write` |
 | Cold | CLI chạy trong process con; wall bao gồm startup/JIT/I/O |
 | Peak memory | RSS tối đa của child process, bao gồm runtime |
-| Repetitions | warm 5 lần, cold 3 lần; scalability warm 5, cold 3 |
+| Số lần lặp cho mỗi biến thể | 5 cho từng chế độ warm count/write, 3 cho cold, ở cả hai phạm vi |
 | Output limit | 2 GiB theo config cho CLI; lỗi/cap/timeout không tính là phép đo thành công |
 
-Nguồn dữ liệu, transaction count và hash đầy đủ được ghi trong [phụ lục raw results](../validation/benchmark-baseline-optimized-results.md). Cấu hình paired nằm tại `bench/config-baseline-20261119.toml` và `bench/config-optimized-20261119.toml`; hai file giống nhau trừ trường `variant` và các minsup scalability chung đã hiệu chỉnh sau khi sàng lọc count-only.
+Hai biến thể dùng cùng các mức minsup đã chọn và cùng giới hạn chạy. Mã harness tại thời điểm đo là `7f122e9`. [Phụ lục kết quả](../validation/benchmark-baseline-optimized-results.md) ghi số giao dịch, checksum từng snapshot và cấu hình tái lập.
+
+| Phạm vi | Điều kiện ghép cặp | Cold mỗi biến thể | Warm count mỗi biến thể | Warm write mỗi biến thể |
+|---|---:|---:|---:|---:|
+| Toàn tập | 35 | 105 | 175 | 175 |
+| Scalability | 25 | 75 | 125 | 125 |
+
+Trong mỗi cấu hình và chế độ xuất, các lượt hợp lệ có cùng checksum đầu vào, số giao dịch, ngưỡng support tuyệt đối và số mẫu giữa hai biến thể. Số byte đầu ra CLI cũng khớp ở cả 60 cấu hình cold. Kiểm chứng trên từng itemset và support được ghi riêng trong [báo cáo pilot](../validation/optimized-pilot.md).
 
 ## 2.3. Kết quả cold toàn tập
 
@@ -36,18 +43,18 @@ Hai ô đầu là median `cold wall (giây) / peak RSS (MiB)`, ba lần chạy. 
 | Chess | 0.4 | 9.93 / 477.1 | 8.35 / 341.7 | 7.5886 / 5.6183 | 6,439,702 | 238,090,371 |
 | Chess | 0.35 | 19.71 / 538.5 | 15.95 / 345.9 | 17.3788 / 13.3567 | 15,108,722 | 578,514,671 |
 | Chess | 0.3 | 43.36 / 551.0 | 36.10 / 349.2 | 41.9165 / 33.5692 | 37,282,962 | 1,474,437,971 |
-| Mushroom | 0.8 | 2.66 / 333.2 | 2.66 / 333.6 | 0.0095 / 0.0095 | 17 | 292 |
-| Mushroom | 0.15 | 2.87 / 359.1 | 2.88 / 340.0 | 0.1348 / 0.1031 | 99,071 | 3,235,973 |
-| Mushroom | 0.1 | 3.29 / 353.2 | 3.30 / 342.9 | 0.5764 / 0.4913 | 600,817 | 21,033,170 |
-| Mushroom | 0.07 | 3.68 / 355.2 | 3.48 / 345.6 | 0.9447 / 0.7706 | 970,105 | 33,704,732 |
-| Mushroom | 0.05 | 6.34 / 364.4 | 5.92 / 347.0 | 3.5802 / 3.2608 | 4,137,547 | 152,436,989 |
-| Mushroom | 0.03 | 12.96 / 394.0 | 12.62 / 350.2 | 10.4256 / 9.8660 | 12,372,681 | 468,989,540 |
-| Mushroom | 0.02 | 21.99 / 398.5 | 20.97 / 356.4 | 19.2417 / 18.4239 | 22,840,275 | 882,487,559 |
-| Accidents | 0.9 | 4.69 / 713.1 | 4.51 / 711.2 | 0.7776 / 0.7580 | 31 | 643 |
-| Accidents | 0.6 | 5.65 / 884.5 | 5.53 / 892.4 | 1.7368 / 1.7496 | 2,074 | 53,439 |
-| Accidents | 0.45 | 7.39 / 1,203.3 | 6.35 / 1,142.4 | 3.5167 / 2.4839 | 16,123 | 465,149 |
-| Accidents | 0.35 | 9.86 / 1,244.4 | 6.98 / 1,295.7 | 6.0349 / 3.2801 | 68,222 | 2,130,894 |
-| Accidents | 0.3 | 13.55 / 1,433.8 | 7.66 / 1,342.0 | 10.0843 / 3.7100 | 149,545 | 4,868,487 |
+| Mushroom | 0.8 | 2.66 / 333.2 | 2.66 / 333.6 | 0.0093 / 0.0095 | 17 | 292 |
+| Mushroom | 0.15 | 2.87 / 359.1 | 2.88 / 340.0 | 0.1349 / 0.1031 | 99,071 | 3,235,973 |
+| Mushroom | 0.1 | 3.29 / 353.2 | 3.30 / 342.9 | 0.5827 / 0.4913 | 600,817 | 21,033,170 |
+| Mushroom | 0.07 | 3.68 / 355.2 | 3.48 / 345.6 | 0.9286 / 0.7706 | 970,105 | 33,704,732 |
+| Mushroom | 0.05 | 6.34 / 364.4 | 5.92 / 347.0 | 3.5659 / 3.2608 | 4,137,547 | 152,436,989 |
+| Mushroom | 0.03 | 12.96 / 394.0 | 12.62 / 350.2 | 10.3798 / 9.8660 | 12,372,681 | 468,989,540 |
+| Mushroom | 0.02 | 21.99 / 398.5 | 20.97 / 356.4 | 19.1503 / 18.4239 | 22,840,275 | 882,487,559 |
+| Accidents | 0.9 | 4.69 / 713.1 | 4.51 / 711.2 | 0.7743 / 0.7580 | 31 | 643 |
+| Accidents | 0.6 | 5.65 / 884.5 | 5.53 / 892.4 | 1.7277 / 1.7496 | 2,074 | 53,439 |
+| Accidents | 0.45 | 7.39 / 1,203.3 | 6.35 / 1,142.4 | 3.5570 / 2.4839 | 16,123 | 465,149 |
+| Accidents | 0.35 | 9.86 / 1,244.4 | 6.98 / 1,295.7 | 6.0449 / 3.2801 | 68,222 | 2,130,894 |
+| Accidents | 0.3 | 13.55 / 1,433.8 | 7.66 / 1,342.0 | 10.2462 / 3.7100 | 149,545 | 4,868,487 |
 | Accidents | 0.25 | 24.18 / 2,019.1 | 9.44 / 1,811.8 | 20.1684 / 5.3281 | 346,525 | 11,596,463 |
 | Accidents | 0.2 | 49.54 / 2,720.1 | 12.76 / 2,594.8 | 47.1705 / 9.3931 | 889,883 | 30,935,294 |
 | Retail | 0.01 | 3.08 / 457.6 | 3.07 / 402.4 | 0.1751 / 0.1442 | 159 | 2,718 |
@@ -99,22 +106,19 @@ Scalability fractions are 10%, 25%, 50%, 75%, and 100% for each of five datasets
 
 ### Nhận xét trọng tâm: T10I4D100K
 
-Optimized nhanh hơn ở cả năm fractions, nhưng RSS không giảm đồng đều. Tại 10–50%, Optimized RSS bằng hoặc thấp hơn nhẹ; 75% tăng khoảng 266 MiB, 100% tăng khoảng 379 MiB (khoảng 27%). Dù đỉnh khoảng 1.79 GiB thấp đáng kể so với 32 GiB RAM vật lý của máy, đây vẫn là trade-off thực, không phải cải thiện bộ nhớ. Với full data ở minsup 0.002, cold Optimized median khoảng 1.90 GiB so với Baseline 1.47 GiB, nhưng nhanh hơn khoảng 2.9×.
+Ở T10I4D100K, Optimized có median cold wall thấp hơn ở cả năm kích thước. Peak RSS giảm ở 10–50% và tăng ở 75–100%. Tại 100% và minsup 0,004, thời gian giảm từ 23,97 xuống 8,83 giây trong khi RSS tăng từ 1.410,3 lên 1.789,2 MiB (khoảng 27%). Trong lượt toàn tập ở minsup 0,002, thời gian giảm từ 28,49 xuống 9,68 giây và RSS tăng từ 1.503,5 lên 1.895,7 MiB. [Biểu đồ scalability](../validation/figures/baseline-optimized-scalability.html) thể hiện hai chỉ số trên T10I4D100K và Accidents.
 
 ## 2.5. Thảo luận
 
-1. Output giữa Baseline và Optimized khớp số patterns và output bytes trên từng full-data selected minsup; trên scalability, hashes và counts khớp ở toàn bộ subset.
-2. Cải thiện runtime lớn nhất xuất hiện ở workload nhiều output: Retail 0.001 cold 11.88s so với 37.97s; Accidents 0.2 là 12.76s so với 49.54s. Ở minsup cao, startup/JIT/I/O chiếm tỷ lệ lớn hơn và chênh lệch nhỏ.
-3. Bộ nhớ tùy workload. Optimized thường giảm RSS trên Chess/Mushroom và nhiều mức Accidents/Retail, nhưng có thể tăng trên T10I4D100K khi minsup giảm. Không suy diễn kết quả một dataset thành đặc tính chung.
-4. Câu hỏi thảo luận với Đăng: phần tăng RSS của T10I4D100K có thể liên quan đến cách biểu diễn dữ liệu/bitmap ở mức minsup thấp không? Cần benchmark lặp lại trên máy khác hoặc profiler allocation/heap để kiểm tra giả thuyết này; chưa có bằng chứng nhân quả từ thí nghiệm hiện tại.
+1. Median cold wall của Optimized thấp hơn ở 32/35 cấu hình toàn tập và 24/25 cấu hình scalability. Median peak RSS thấp hơn ở 23/35 và 20/25 cấu hình tương ứng. Đây là số cấu hình theo chiều chênh lệch trên một máy, với ba lần lặp cold mỗi điểm.
+2. Hai mức tăng tốc lớn nhất trong lượt toàn tập là Accidents minsup 0,2 (3,88×) và Retail minsup 0,001 (3,20×). Ba lượt cold của Accidents nằm trong 49,24–51,77 giây với Baseline và 12,62–12,88 giây với Optimized. Với một số mức minsup cao, chênh lệch chỉ vài phần trăm giây và cần thêm lần lặp để đánh giá.
+3. Có hai hướng thử tiếp. Đo heap theo giai đoạn và thử lưu các bitmap ít bit bật bằng cấu trúc thưa để xem có giảm RSS của T10I4D100K. Đo riêng chi phí ghi kết quả và thử ghi theo lô trên Chess và Mushroom, nơi đầu ra có thể lên tới hàng trăm MiB hoặc hơn. Đối chiếu lại từng itemset và support trước khi so hiệu năng.
 
 ## 2.6. Hạn chế và khả năng tái lập
 
 - `Chess` scale dùng minsup 0.99 để tránh mức 0.45 sinh >5M patterns chỉ trên 10% prefix. Counts giảm không đơn điệu do prefix đầu vào không đại diện phân phối toàn tập; đây không phải phép đo output volume cố định.
 - `Mushroom` scale dùng minsup 0.2; mức cũ 0.15 tạo 3.44M patterns ở 10% và không được dùng trong paired scale run.
-- Baseline full warm primary run có đủ count và write rows cho cả 35 dataset/minsup pairs. Harness tự giảm Chess 10% count từ 5 xuống 3 repetitions sau khi lần đầu vượt 60 giây; đây là hành vi đã ghi nhận trong raw CSV.
-- Một lần chạy scale Baseline đầu tiên dừng ở Chess 10% count và chỉ lưu 5 rows count-only; không dùng các rows đó như phép đo đầy đủ.
-- Dữ liệu raw, subset hashes, environment, config và logs ở `results/handoff/benchmark-baseline-optimized-20261119/` (bị Git ignore). ZIP local `results/handoff/benchmark-baseline-optimized-20261119.zip` đã tạo và kiểm tra toàn bộ checksum của 110 file sau giải nén; byte size cùng SHA256 được ghi trong [handoff record](../validation/benchmark-handoff.md). ZIP không chứa dataset hoặc output itemset toàn tập.
-- Biểu đồ scalability HTML/SVG có thể tái tạo bằng `python -I docs/validation/render-baseline-optimized.py results/handoff/benchmark-baseline-optimized-20261119/full-run --output docs/validation/figures/baseline-optimized-scalability.html`. Biểu đồ ladder warm/cold còn thiếu. Legacy matplotlib plotting test chưa chạy được vì runtime không có matplotlib; renderer paired mới có 3 test focused pass.
+- Gói đã giải nén tại `results/benchmark-baseline-optimized-20261119/` có 5 dòng warm count thử của Baseline ở Chess 10%, minsup 0,45, trong run `20261119-180657`. Loại đúng 5 dòng này khi tổng hợp; các lượt khác trong cùng thư mục vẫn được dùng. Ở minsup 0,99, Chess 10% có đủ 5 lượt warm count mỗi biến thể.
+- Dữ liệu thô, config, thông tin máy, checksum và log được lưu ngoài Git. Xem [hướng dẫn bàn giao](../validation/benchmark-handoff.md) để xác minh gói và tái tạo biểu đồ.
 
 Bảng chi tiết cold toàn dataset và subset SHA256: [benchmark results appendix](../validation/benchmark-baseline-optimized-results.md).

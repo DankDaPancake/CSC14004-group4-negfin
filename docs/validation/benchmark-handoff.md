@@ -14,9 +14,17 @@ Lượt chính chạy tại commit `3ecd0c1ce032e42b271100f2531260d53dde2d65`, w
 
 ## Gói bàn giao Baseline vs Optimized (19-11-2026)
 
+Bản đã giải nén dùng để cập nhật [Chương 2](../report/chapter2.md) nằm tại `results/benchmark-baseline-optimized-20261119/` trong checkout chính. Đã kiểm lại 110 checksum trong `SHA256SUMS.txt`. Có 1.565 dòng đo trong `full-run/*/runs.csv`; sau khi bỏ 5 dòng warm count thử của Baseline tại Chess 10%, minsup 0,45 (run `20261119-180657`), tập tổng hợp còn 1.560 lượt `ok`. Chess 10%, minsup 0,99 có đủ 5 lượt warm count cho mỗi biến thể. Giữ nguyên gói thô để đối chiếu checksum.
+
+Từ thư mục gốc có thể tạo lại biểu đồ cold scalability vào thư mục kết quả local:
+
+```powershell
+python -I docs/validation/render-baseline-optimized.py results/benchmark-baseline-optimized-20261119/full-run --output results/baseline-optimized-scalability.html
+```
+
 Gói ZIP local: `results/handoff/benchmark-baseline-optimized-20261119.zip` (308,876 bytes), SHA256 `340244FA8AD98E63DBDFA1B78569F34A49C6B4096CA50AA24B68364EE720C64D`. ZIP có 110 file kèm `SHA256SUMS.txt`; đã giải nén vào thư mục xác minh mới, tính lại tất cả 110 checksum thành công và kiểm tra ZIP đọc được. Gói gồm config/manifest, README môi trường, raw `runs.csv`, `phases.csv`, `summary.csv`, `env.toml` cho các full runs và corrected scale runs, pilot summaries, Chapter 2 draft, report analysis, source renderer và HTML scalability figure. Gói không chứa dataset gốc, Julia runtime hay output itemset toàn tập. Năm dataset trong checkout phải tải lại/giữ riêng theo manifest khi chuyển máy.
 
-Các lần chạy hoàn chỉnh cho mỗi variant: 35 full-data cold configs × 3 reps; 35 full-data warm pairs × 5 count + 5 write; 25 scalability fractions × 3 cold + 5 warm count/write. Minsup scale cuối: Chess 0.99, Mushroom 0.2, Retail 0.004, Accidents 0.25, T10I4D100K 0.004. Tất cả subset SHA256 khớp giữa hai variant. Trial Chess 10% ở minsup 0.45 vượt 5 triệu patterns và được dừng trước output; không dùng trong báo cáo. Một warm count dài làm harness giảm repetition theo cấu hình; chi tiết trong README ZIP và raw CSV.
+Các lần chạy hoàn chỉnh cho mỗi variant: 35 full-data cold configs × 3 reps; 35 full-data warm pairs × 5 count + 5 write; 25 scalability fractions × 3 cold + 5 warm count/write. Minsup scale cuối: Chess 0.99, Mushroom 0.2, Retail 0.004, Accidents 0.25, T10I4D100K 0.004. Tất cả subset SHA256 khớp giữa hai variant. Trial Chess 10% ở minsup 0.45 vượt 5 triệu patterns và được dừng trước output; các dòng chạy thử được loại khỏi báo cáo.
 
 ## Kiểm tra bản sao local
 
