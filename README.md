@@ -92,6 +92,10 @@ julia --startup-file=no --project=. bench/run.jl --all                     # m�
 
 `--stats` của CLI có thêm `[phases]` và hai bộ đếm; xem [contract](docs/baseline-contract.md#đo-lường).
 
+### Benchmark Baseline và Optimized
+
+Đo ghép cặp trên năm tập dữ liệu với 35 cấu hình toàn tập và 25 cấu hình scalability. Xem [Chương 2](docs/report/chapter2.md) để đọc kết quả và [hồ sơ bàn giao](docs/validation/benchmark-handoff.md) để xác minh gói dữ liệu thô và tái tạo biểu đồ.
+
 ## Hai ứng dụng và demo Colab
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/DankDaPancake/CSC14004-group4-negfin/blob/main/notebooks/demo.ipynb)

@@ -95,9 +95,9 @@ RSS là MiB; output là bytes; `patterns` là số frequent itemsets. Thời gia
 
 ### T10I4D100K: memory trade-off
 
-At the selected scalability minsup 0.004, Optimized reduces cold wall time at every fraction, from 4.69s to 3.30s at 10% and 23.97s to 8.83s at 100%. RSS is lower through 50%, but higher at 75% (+266 MiB, about 22%) and 100% (+379 MiB, about 27%). The 100% cold run remains well below the host’s 32 GiB physical RAM, but the direction of the trade-off is consistent with the earlier full-data selected-ladder measurements: at minsup 0.002, Optimized uses ~1.90 GiB vs Baseline ~1.47 GiB, while completing substantially faster. Do not equate total allocations with peak RSS.
+At the selected scalability minsup 0.004, Optimized reduces cold wall time at every fraction, from 4.69s to 3.30s at 10% and 23.97s to 8.83s at 100%. RSS is lower through 50%, but higher at 75% (+266 MiB, about 22%) and 100% (+379 MiB, about 27%). At minsup 0.002 in the full-data ladder, median peak RSS is 1,895.7 MiB for Optimized and 1,503.5 MiB for Baseline, with cold wall time falling from 28.49s to 9.68s.
 
-At Accidents 100%, Optimized is faster (9.46s vs 23.54s) and has lower median RSS (1.75 GiB vs 1.95 GiB); this dataset exhibits a different resource pattern than T10I4D100K.
+At Accidents 100%, Optimized is faster (9.46s vs 23.54s) and has lower median RSS (1,753.9 MiB vs 1,949.6 MiB).
 
 ## Interpretation
 
@@ -110,7 +110,7 @@ At Accidents 100%, Optimized is faster (9.46s vs 23.54s) and has lower median RS
 
 - The original `scalability_minsup.Chess = 0.45` setting was unsafe even at 10%; the interrupted count-only probe exceeded 5M patterns. The corrected 0.99 setting yields 81,919 patterns at 10% and only 9 at full data. This means Chess is a fixed-minsup scalability study, not a fixed-output-volume study; prefix composition changes its pattern count non-monotonically.
 - The selected 10% Mushroom support 0.15 produced 3.44M patterns in a callback-only screen, but it was not used in scale runs. The corrected, paired support is 0.2 (835,583 patterns at 10%).
-- Full-dataset warm Baseline has all 35 selected dataset/minsup pairs with five `count` and five `write` rows each in the primary completed run. The harness automatically reduced Chess 10% `count` from five to three repetitions because its first run exceeded the configured 60-second long-warm threshold. An earlier interrupted 127-row run remains separate and is excluded from the report.
+- The supplied raw CSVs contain five warm `count` and five warm `write` rows per variant for every accepted full-data and scalability condition, including Chess 10% at corrected minsup 0.99. An earlier interrupted 127-row run remains separate and is excluded from the report.
 - The interrupted first scale attempt is preserved in run `20261119-180657`; only the separately rerun corrected scope is included in this table.
 - The interactive scalability visualization is `docs/validation/figures/baseline-optimized-scalability.html`; the full cold-ladder runtime/RSS chart is still pending. The legacy matplotlib plotting suite cannot import `matplotlib` in this Python runtime; the new stdlib-only paired renderer has three focused tests passing. A ZIP with 110 verified file-level SHA256 entries has been created locally and recorded in `docs/validation/benchmark-handoff.md`. No external handoff to Đăng has occurred.
 
