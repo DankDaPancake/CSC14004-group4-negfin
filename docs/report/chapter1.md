@@ -4,7 +4,7 @@
 
 Cho cơ sở dữ liệu giao dịch $D=(T_1,\ldots,T_N)$, trong đó mỗi $T_t$ là một tập item. Số lần xuất hiện (support count) của tập item $X$ là $s(X)=|\{t\mid X\subseteq T_t\}|$. Với ngưỡng tương đối $\theta\in(0,1]$, bài toán trả về mọi tập khác rỗng thỏa $s(X)\ge m$, với $m=\lceil\theta N\rceil$, cùng số lần xuất hiện của chúng. Hai giao dịch giống nhau vẫn được tính riêng. Với $X\subseteq Y$, ta có $s(Y)\le s(X)$, nên có thể bỏ toàn bộ nhánh mở rộng một tập có support dưới ngưỡng.
 
-Nhóm cài đặt negFIN bằng Julia dựa trên mô tả của Aryabarzan và cộng sự [1]. Thuật toán gom tiền tố giao dịch trong một cây mã hóa bitmap và tính support bằng cách đếm phần giao dịch bị mất khi thêm item. SPMF cung cấp kết quả tham chiếu để kiểm chứng cài đặt của nhóm.
+Nhóm cài đặt negFIN bằng Julia dựa trên mô tả của Aryabarzan và cộng sự [1]. Thuật toán gom tiền tố giao dịch trong một cây mã hóa bitmap và tính support bằng cách đếm phần giao dịch bị mất khi thêm item. Thư viện SPMF [2] cung cấp kết quả tham chiếu để kiểm chứng cài đặt của nhóm.
 
 ## 1.2. Cài đặt Baseline
 
@@ -48,3 +48,5 @@ Kết quả ở Bảng I đạt tỷ lệ khớp 100% trên cả năm cấu hìn
 ## Tài liệu tham khảo (Chương 1)
 
 [1] N. Aryabarzan, B. Minaei-Bidgoli và M. Teshnehlab, “negFIN: An efficient algorithm for fast mining frequent itemsets,” *Expert Systems with Applications*, tập 105, tr. 129–143, 2018. [DOI 10.1016/j.eswa.2018.03.041](https://doi.org/10.1016/j.eswa.2018.03.041).
+
+[2] P. Fournier-Viger, J. C.-W. Lin, A. Gomariz, T. Gueniche, A. Soltani, Z. Deng và H. T. Lam, “The SPMF open-source data mining library version 2,” trong *Proc. ECML PKDD*, LNCS, tập 9853, tr. 36–40, 2016. DOI 10.1007/978-3-319-46131-1_8.

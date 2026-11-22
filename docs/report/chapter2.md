@@ -8,6 +8,10 @@ Chương này so sánh hai biến thể Baseline và Optimized của negFIN tron
 
 ## 2.2. Thiết lập thực nghiệm
 
+Bảng I tóm tắt môi trường và cấu hình đo.
+
+**Bảng I.** Môi trường và cấu hình đo
+
 | Hạng mục | Thiết lập |
 |---|---|
 | Hệ điều hành | Windows 11 Pro, build 26200 |
@@ -21,7 +25,9 @@ Chương này so sánh hai biến thể Baseline và Optimized của negFIN tron
 | Số lần lặp cho mỗi biến thể | 5 cho từng chế độ warm count/write, 3 cho cold, ở cả hai phạm vi |
 | Output limit | 2 GiB theo config cho CLI; lỗi/cap/timeout không tính là phép đo thành công |
 
-Hai biến thể dùng cùng các mức minsup đã chọn và cùng giới hạn chạy. Mã harness tại thời điểm đo là `7f122e9`. [Phụ lục kết quả](../validation/benchmark-baseline-optimized-results.md) ghi số giao dịch, checksum từng snapshot và cấu hình tái lập.
+Hai biến thể dùng cùng các mức minsup đã chọn và cùng giới hạn chạy. Mã harness tại thời điểm đo là `7f122e9`. [Phụ lục kết quả](../validation/benchmark-baseline-optimized-results.md) ghi số giao dịch, checksum từng snapshot và cấu hình tái lập. Bảng II tóm tắt số cấu hình và số lượt đo.
+
+**Bảng II.** Số cấu hình ghép cặp và số lượt đo hợp lệ
 
 | Phạm vi | Điều kiện ghép cặp | Cold mỗi biến thể | Warm count mỗi biến thể | Warm write mỗi biến thể |
 |---|---:|---:|---:|---:|
@@ -32,7 +38,9 @@ Trong mỗi cấu hình và chế độ xuất, các lượt hợp lệ có cùn
 
 ## 2.3. Kết quả cold toàn tập
 
-Hai ô đầu là median `cold wall (giây) / peak RSS (MiB)`, ba lần chạy. Cột warm write là median `phases_total_seconds` (giây) cho `emit_mode=write` sau warm-up, thứ tự Baseline / Optimized. Pattern count và output size giống nhau giữa hai variant ở mọi điều kiện full-data.
+Trong Bảng III, hai ô đầu là median `cold wall (giây) / peak RSS (MiB)`, ba lần chạy. Cột warm write là median `phases_total_seconds` (giây) cho `emit_mode=write` sau warm-up, thứ tự Baseline / Optimized. Pattern count và output size giống nhau giữa hai variant ở mọi điều kiện full-data.
+
+**Bảng III.** Kết quả cold và warm write trên toàn tập (median ba lần cold, năm lần warm)
 
 | Dataset | minsup | Baseline cold sec / MiB | Optimized cold sec / MiB | Warm write sec B/O | Patterns | Output (bytes) |
 |---|---:|---:|---:|---:|---:|---:|
@@ -74,7 +82,9 @@ Hai ô đầu là median `cold wall (giây) / peak RSS (MiB)`, ba lần chạy. 
 
 ## 2.4. Scalability
 
-Scalability fractions are 10%, 25%, 50%, 75%, and 100% for each of five datasets. Each pair uses the same prefix subset SHA256. The table reports cold wall and RSS medians; all pattern counts match between variants.
+Mỗi tập dữ liệu được đo ở các phần tiền tố 10%, 25%, 50%, 75% và 100%. Mỗi cặp Baseline–Optimized dùng cùng một tập con có cùng SHA-256. Bảng IV ghi median cold wall và peak RSS; số mẫu khớp giữa hai biến thể ở mọi điểm.
+
+**Bảng IV.** Scalability theo phần tiền tố dữ liệu (median ba lần cold)
 
 | Dataset / minsup | Fraction | Patterns | Baseline sec / MiB | Optimized sec / MiB |
 |---|---:|---:|---:|---:|
