@@ -5,6 +5,7 @@
 *.jar
 *.tmp
 /data/applications/raw/
+**/__pycache__/
 /docs/report/ieee/*.pdf
 /docs/report/ieee/*.aux
 /docs/report/ieee/*.log
