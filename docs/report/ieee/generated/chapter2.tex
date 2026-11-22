@@ -23,8 +23,8 @@ Hệ điều hành & Windows 11 Pro, build 26200 \\
 CPU & Intel Core i5-13600K, 20 logical CPUs \\
 RAM & 34,088,599,552 bytes \\
 Julia & 1.12.0, một thread \\
-Dữ liệu & 5 snapshot trong \texttt{data/benchmark/manifest.toml}; SHA256 được kiểm
-trước đo \\
+Dữ liệu & 5 snapshot trong \nolinkurl{data/benchmark/manifest.toml}; SHA256 được
+kiểm trước đo \\
 Warm & đo trong process sau warm-up, tách \texttt{count} và \texttt{write} \\
 Cold & CLI chạy trong process con; wall bao gồm startup/JIT/I/O \\
 Peak memory & RSS tối đa của child process, bao gồm runtime \\
@@ -55,7 +55,7 @@ Trong mỗi cấu hình và chế độ xuất, các lượt hợp lệ có cùn
 
 \subsection{Kết quả cold toàn tập}
 
-Trong Bảng~\ref{tab:c2-III}, hai ô đầu là median \texttt{cold\ wall\ (giây)\ /\ peak\ RSS\ (MiB)}, ba lần chạy. Cột warm write là median \texttt{phases\_total\_seconds} (giây) cho \texttt{emit\_mode=write} sau warm-up, thứ tự Baseline / Optimized. Pattern count và output size giống nhau giữa hai variant ở mọi điều kiện full-data.
+Trong Bảng~\ref{tab:c2-III}, hai ô đầu là median \nolinkurl{cold wall (giây) / peak RSS (MiB)}, ba lần chạy. Cột warm write là median \texttt{phases\_total\_seconds} (giây) cho \texttt{emit\_mode=write} sau warm-up, thứ tự Baseline / Optimized. Pattern count và output size giống nhau giữa hai variant ở mọi điều kiện full-data.
 
 \begin{table*}[!t]
 \centering\footnotesize
@@ -172,7 +172,7 @@ T10I4D100K / 0.004 & 10\% & 2,185 & 4.69 / 543.0 & 3.30 / 478.8 \\
 \item
   \texttt{Mushroom} scale dùng minsup 0.2; mức cũ 0.15 tạo 3.44M patterns ở 10\% và không được dùng trong paired scale run.
 \item
-  Gói đã giải nén tại \texttt{results/benchmark-baseline-optimized-20261119/} có 5 dòng warm count thử của Baseline ở Chess 10\%, minsup 0,45, trong run \texttt{20261119-180657}. Loại đúng 5 dòng này khi tổng hợp; các lượt khác trong cùng thư mục vẫn được dùng. Ở minsup 0,99, Chess 10\% có đủ 5 lượt warm count mỗi biến thể.
+  Gói đã giải nén tại \nolinkurl{results/benchmark-baseline-optimized-20261119/} có 5 dòng warm count thử của Baseline ở Chess 10\%, minsup 0,45, trong run \texttt{20261119-180657}. Loại đúng 5 dòng này khi tổng hợp; các lượt khác trong cùng thư mục vẫn được dùng. Ở minsup 0,99, Chess 10\% có đủ 5 lượt warm count mỗi biến thể.
 \item
   Dữ liệu thô, config, thông tin máy, checksum và log được lưu ngoài Git. Xem hướng dẫn bàn giao để xác minh gói và tái tạo biểu đồ.
 \end{itemize}

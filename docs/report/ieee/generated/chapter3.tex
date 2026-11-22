@@ -1,11 +1,11 @@
 % Sinh tự động từ docs/report/chapter3.md bởi build.py — sửa file Markdown, không sửa file này.
 \section{Ứng dụng}\label{sec:ch3}
 
-Chương này áp dụng cài đặt negFIN của nhóm \cite{negfin} cho hai bài toán thực tế theo yêu cầu đề: phân tích giỏ hàng trên dữ liệu bán lẻ và tìm pattern trên chuỗi DNA. Mọi frequent itemset đều do CLI \texttt{run.jl} của nhóm sinh ra (Baseline); Python chỉ dùng để chuyển dữ liệu gốc sang định dạng SPMF và hậu xử lý kết quả. Toàn bộ pipeline chạy lại được bằng notebook \texttt{notebooks/demo.ipynb}.
+Chương này áp dụng cài đặt negFIN của nhóm \cite{negfin} cho hai bài toán thực tế theo yêu cầu đề: phân tích giỏ hàng trên dữ liệu bán lẻ và tìm pattern trên chuỗi DNA. Mọi frequent itemset đều do CLI \texttt{run.jl} của nhóm sinh ra (Baseline); Python chỉ dùng để chuyển dữ liệu gốc sang định dạng SPMF và hậu xử lý kết quả. Toàn bộ pipeline chạy lại được bằng notebook \nolinkurl{notebooks/demo.ipynb}.
 
 \subsection{Quy trình chung}
 
-Mỗi ứng dụng gồm bốn bước: (1) tải dữ liệu công khai và kiểm SHA-256 theo \texttt{data/applications/manifest.toml}; (2) script \texttt{prepare.py} biến dữ liệu gốc thành file transaction SPMF (mỗi dòng một giao dịch, item là số nguyên dương) cùng bảng ánh xạ ID $\leftrightarrow$ ý nghĩa; (3) chạy negFIN với \texttt{minsup} là tỷ lệ thập phân, ngưỡng tuyệt đối \(m = \lceil \mathit{minsup}\cdot N\rceil\) với \(N\) là số transaction; (4) hậu xử lý: sinh luật kết hợp (ứng dụng A) hoặc so sánh pattern giữa các lớp (ứng dụng B), rồi giải mã ID thành tên để diễn giải.
+Mỗi ứng dụng gồm bốn bước: (1) tải dữ liệu công khai và kiểm SHA-256 theo \nolinkurl{data/applications/manifest.toml}; (2) script \texttt{prepare.py} biến dữ liệu gốc thành file transaction SPMF (mỗi dòng một giao dịch, item là số nguyên dương) cùng bảng ánh xạ ID $\leftrightarrow$ ý nghĩa; (3) chạy negFIN với \texttt{minsup} là tỷ lệ thập phân, ngưỡng tuyệt đối \(m = \lceil \mathit{minsup}\cdot N\rceil\) với \(N\) là số transaction; (4) hậu xử lý: sinh luật kết hợp (ứng dụng A) hoặc so sánh pattern giữa các lớp (ứng dụng B), rồi giải mã ID thành tên để diễn giải.
 
 Cả hai bộ dữ liệu lấy từ UCI Machine Learning Repository, giấy phép CC BY 4.0; dữ liệu gốc không đưa vào repo mà được notebook tải và kiểm checksum khi chạy.
 
@@ -132,6 +132,16 @@ KITCHEN & 1,13\% & 0,68 & 43,14 \\
 \end{tabular}
 \end{table*}
 
+Hình~\ref{fig:c3-1} cho thấy phân bố của toàn bộ 962 luật: 93,7\% có support dưới 2\% và 79,1\% có lift dưới 20. Ba mươi hai luật có lift từ 60 trở lên đều thuộc họ HERB MARKER và có support không quá 1,12\%, nằm ở góc trái trên của hình; luật có support cao nhất (4,17\%, chứa JUMBO BAG PINK POLKADOT) chỉ có lift trung bình. Như vậy luật có lift cao nhất không phải luật phổ biến nhất.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{retail-rules.pdf}
+\caption{Support và confidence của 962 luật (minsup 0,01, minconf 0,5); màu biểu
+diễn lift theo thang log.}
+\label{fig:c3-1}
+\end{figure}
+
 \subsubsection{Diễn giải}
 
 Các luật thể hiện hai kiểu hành vi mua:
@@ -199,6 +209,16 @@ Bảng~\ref{tab:c3-V} cho số itemset của từng lớp ở ba mức minsup. N
 
 Ở minsup 0,5, các item có mặt ở ít nhất một nửa số chuỗi là: với EI, \texttt{p-2\_A} (58\%), \texttt{p-1\_G} (81\%), \texttt{p+1\_G} (99,7\%), \texttt{p+2\_T} (99,0\%), \texttt{p+4\_A} (72\%), \texttt{p+5\_G} (86\%); với IE, \texttt{p-3\_C} (79\%), \texttt{p-2\_A} (99,6\%), \texttt{p-1\_G} (99,7\%).
 
+Hình~\ref{fig:c3-2} tóm tắt tần suất của từng base ở từng vị trí trong mỗi lớp. Mỗi ô là support của một itemset một phần tử \texttt{p\textless{}vị\ trí\textgreater{}\_\textless{}base\textgreater{}} trong lớp đó, đếm trực tiếp từ transaction để có đủ 240 item; hình chỉ mang tính mô tả và giúp đọc các itemset nhiều phần tử ở Bảng~\ref{tab:c3-VI}. Ở EI, các ô đậm tập trung ở −1 (G), +1 (G), +2 (T) và +5 (G); ở IE, ở −3 (C), −2 (A), −1 (G), cùng một dải C/T nhạt hơn trải từ khoảng −20 đến −5; lớp N gần như đồng đều.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{splice-positions.pdf}
+\caption{Tỷ lệ chuỗi có mỗi base tại mỗi vị trí, theo lớp. Đường dọc đánh dấu
+điểm nối giữa −1 và +1.}
+\label{fig:c3-2}
+\end{figure*}
+
 Bảng~\ref{tab:c3-VI} liệt kê các itemset có growth cao nhất của EI và IE.
 
 \begin{table*}[!t]
@@ -229,7 +249,7 @@ Kết quả được đối chiếu với trình tự consensus đã công bố 
 \begin{itemize}
 \tightlist
 \item
-  \textbf{Donor (EI).} negFIN tìm lại gần như đủ consensus donor: \texttt{G} ở −1 (kèm \texttt{A} ở −2) phía exon, \texttt{GT} ở +1..+2, rồi \texttt{A/G} ở +3, \texttt{A} ở +4, \texttt{G} ở +5, \texttt{T} ở +6. Riêng cặp \texttt{GT} ở +1..+2 có mặt ở 99,0\% chuỗi EI, so với 14,1\% ở IE và 5,9\% ở N. Itemset năm phần tử \texttt{p+1\_G\ p+2\_T\ p+4\_A\ p+5\_G\ p+6\_T} xuất hiện ở 30,2\% chuỗi EI và không có ở lớp nào khác.
+  \textbf{Donor (EI).} negFIN tìm lại gần như đủ consensus donor: \texttt{G} ở −1 (kèm \texttt{A} ở −2) phía exon, \texttt{GT} ở +1..+2, rồi \nolinkurl{A/G} ở +3, \texttt{A} ở +4, \texttt{G} ở +5, \texttt{T} ở +6. Riêng cặp \texttt{GT} ở +1..+2 có mặt ở 99,0\% chuỗi EI, so với 14,1\% ở IE và 5,9\% ở N. Itemset năm phần tử \texttt{p+1\_G\ p+2\_T\ p+4\_A\ p+5\_G\ p+6\_T} xuất hiện ở 30,2\% chuỗi EI và không có ở lớp nào khác.
 \item
   \textbf{Acceptor (IE).} Bộ ba \texttt{CAG} ở −3..−1 có mặt ở 78,8\% chuỗi IE, so với 22,8\% ở EI và 2,3\% ở N; riêng \texttt{AG} ở −2..−1 đạt 99,5\%. Các itemset đặc trưng nhất của IE ghép \texttt{CAG} với một base \texttt{T} hoặc \texttt{C} ở vị trí −6..−17, tức vùng giàu pyrimidine (polypyrimidine tract) nằm trước acceptor. Kiểm tra trực tiếp: tỷ lệ pyrimidine ở vùng −20..−5 là 77,4\% với IE, so với 49,1\% với EI và 49,3\% với N.
 \item
@@ -242,7 +262,7 @@ Itemset chỉ biểu diễn đồng xuất hiện của các base ở vị trí 
 
 \subsection{Tái lập và kiểm chứng}
 
-Notebook \texttt{notebooks/demo.ipynb} dùng Julia có sẵn hoặc tự cài Julia 1.12.0 (kiểm SHA-256), lấy mã nguồn ở commit chỉ định, tải hai bộ dữ liệu và kiểm checksum, rồi chạy lần lượt ví dụ toy, ứng dụng 1 và ứng dụng 2 qua \texttt{run.jl}; cell cuối in commit, phiên bản Julia và mọi tham số. Notebook đã được chạy Run all trên runtime Colab mới ở commit \texttt{7e3e9b0} với Julia 1.12.6, cho đúng các số liệu trong chương này; bản có output được chia sẻ công khai tại liên kết trong README. Các bước kiểm chứng đã thực hiện:
+Notebook \nolinkurl{notebooks/demo.ipynb} dùng Julia có sẵn hoặc tự cài Julia 1.12.0 (kiểm SHA-256), lấy mã nguồn ở commit chỉ định, tải hai bộ dữ liệu và kiểm checksum, rồi chạy lần lượt ví dụ toy, ứng dụng 1 và ứng dụng 2 qua \texttt{run.jl}; cell cuối in commit, phiên bản Julia và mọi tham số. Notebook đã được chạy Run all trên runtime Colab mới ở commit \texttt{7e3e9b0} với Julia 1.12.6, cho đúng các số liệu trong chương này; bản có output được chia sẻ công khai tại liên kết trong README. Các bước kiểm chứng đã thực hiện:
 
 \begin{itemize}
 \tightlist

@@ -7,6 +7,7 @@ local stringify = pandoc.utils.stringify
 local chapter = "0"
 local refmap = {}   -- "1" -> khóa BibTeX
 local tables = {}   -- số La Mã trong chương -> nhãn LaTeX
+local figures = {}  -- số hình trong chương -> nhãn LaTeX
 
 local MATH = {
   ["⇒"] = "\\Rightarrow", ["→"] = "\\rightarrow", ["∞"] = "\\infty", ["∪"] = "\\cup",
@@ -34,6 +35,18 @@ end
 local function caption_roman(block)
   if block.t ~= "Para" or #block.content == 0 or block.content[1].t ~= "Strong" then return nil end
   return stringify(block.content[1]):match("^Bảng%s+([IVX]+)%.")
+end
+
+-- "Hình 2." trong Strong đầu đoạn, theo sau là đoạn chỉ có một ảnh
+local function figure_number(block)
+  if block.t ~= "Para" or #block.content == 0 or block.content[1].t ~= "Strong" then return nil end
+  return stringify(block.content[1]):match("^Hình%s+(%d+)%.")
+end
+
+local function image_of(block)
+  if block and block.t == "Para" and #block.content == 1 and block.content[1].t == "Image" then
+    return block.content[1]
+  end
 end
 
 -- Tách một Str thành Str/RawInline cho [n] (trích dẫn) và ký hiệu toán Unicode.
@@ -84,6 +97,15 @@ local function fix_inlines(inlines)
       out:insert(pandoc.Str("và")); out:insert(pandoc.Space())
       out:insert(pandoc.RawInline("latex", "\\ref{" .. tables[r] .. "}" .. punct))
       i = i + 3
+    elseif el.t == "Str" and el.text == "Hình" and nxt and nxt.t == "Space" and val and val.t == "Str"
+        and figures[val.text:match("^(%d+)%p*$") or ""] then
+      local n, punct = val.text:match("^(%d+)(%p*)$")
+      out:insert(pandoc.RawInline("latex", "Hình~\\ref{" .. figures[n] .. "}" .. punct))
+      last_table = false
+      i = i + 3
+    elseif el.t == "Code" and el.text:find("/") then
+      out:insert(pandoc.RawInline("latex", "\\nolinkurl{" .. el.text .. "}"))   -- đường dẫn: cho ngắt dòng ở "/"
+      i = i + 1
     elseif el.t == "Str" and el.text == "Chương" and nxt and nxt.t == "Space" and val and val.t == "Str"
         and val.text:match("^%d+%p*$") then
       local n, punct = val.text:match("^(%d+)(%p*)$")
@@ -207,6 +229,14 @@ function Pandoc(doc)
       while #cap > 0 and cap[1].t == "Space" do cap:remove(1) end
       blocks[i] = pandoc.Div({ pandoc.Plain(cap) }, pandoc.Attr("", {}, { { "caption-of", r } }))
     end
+    local f = figure_number(b)
+    if f and image_of(blocks[i + 1]) then
+      figures[f] = "fig:c" .. chapter .. "-" .. f
+      local cap = pandoc.List(b.content)
+      cap:remove(1)
+      while #cap > 0 and cap[1].t == "Space" do cap:remove(1) end
+      blocks[i] = pandoc.Div({ pandoc.Plain(cap) }, pandoc.Attr("", {}, { { "figure-of", f } }))
+    end
   end
 
   -- 3) trích dẫn, tham chiếu bảng/chương, ký hiệu toán, liên kết nội bộ
@@ -229,6 +259,20 @@ function Pandoc(doc)
     elseif b.t == "Div" and b.attributes["caption-of"] and blocks[i + 1] and blocks[i + 1].t == "Table" then
       local r = b.attributes["caption-of"]
       out:insert(pandoc.RawBlock("latex", render_table(blocks[i + 1], r, latex(b.content))))
+      i = i + 2
+    elseif b.t == "Div" and b.attributes["figure-of"] and image_of(blocks[i + 1]) then
+      local img = image_of(blocks[i + 1])
+      local wide = img.classes:includes("wide")
+      local env = wide and "figure*" or "figure"
+      local file = img.src:match("([^/]+)$"):gsub("%.png$", ".pdf")   -- PNG cho Markdown, PDF vector cho LaTeX
+      out:insert(pandoc.RawBlock("latex", table.concat({
+        "\\begin{" .. env .. "}[!t]",
+        "\\centering",
+        "\\includegraphics[width=" .. (wide and "\\textwidth" or "\\columnwidth") .. "]{" .. file .. "}",
+        "\\caption{" .. latex(b.content) .. "}",
+        "\\label{" .. figures[b.attributes["figure-of"]] .. "}",
+        "\\end{" .. env .. "}",
+      }, "\n")))
       i = i + 2
     elseif b.t == "Table" then
       error("Bảng không có caption \"**Bảng X.**\" ở chương " .. chapter)

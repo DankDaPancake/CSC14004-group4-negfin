@@ -49,10 +49,14 @@ def generate():
         leftover = re.findall(r"(?<![\w{])\[\d+\]", tex)
         if leftover:
             sys.exit(f"chapter{n}.md: trích dẫn chưa ánh xạ sang refs.bib: {sorted(set(leftover))}")
-        # mọi bảng phải được dẫn trong văn bản, mọi khóa \cite phải có trong refs.bib
-        unreferenced = [l for l in re.findall(r"\\label\{(tab:[^}]+)\}", tex) if f"\\ref{{{l}}}" not in tex]
+        # mọi bảng/hình phải được dẫn trong văn bản, mọi khóa \cite phải có trong refs.bib
+        unreferenced = [l for l in re.findall(r"\\label\{((?:tab|fig):[^}]+)\}", tex) if f"\\ref{{{l}}}" not in tex]
         if unreferenced:
-            sys.exit(f"chapter{n}.md: bảng chưa được dẫn trong văn bản: {unreferenced}")
+            sys.exit(f"chapter{n}.md: bảng/hình chưa được dẫn trong văn bản: {unreferenced}")
+        orphan = re.findall(r"\\includegraphics(?:\[[^]]*\])?\{([^}]+)\}", tex)
+        for f in orphan:
+            if not (REPORT / "figures" / f).exists():
+                sys.exit(f"chapter{n}.md: thiếu file hình docs/report/figures/{f}")
         bib = (HERE / "refs.bib").read_text(encoding="utf-8")
         missing = [k for k in re.findall(r"\\cite\{([^}]+)\}", tex) if f"{{{k}," not in bib]
         if missing:
@@ -73,14 +77,21 @@ def compile_pdf():
         return
     pdf = DOCS / "Report.pdf"
     shutil.copyfile(HERE / "main.pdf", pdf)
-    pages = len(re.findall(rb"/Type\s*/Page[^s]", pdf.read_bytes()))
-    print(f"{pdf.relative_to(DOCS.parent)}: {pages} trang (kể cả tài liệu tham khảo)")
+    try:
+        import pymupdf  # tùy chọn: pip install pymupdf
+    except ImportError:
+        print(f"{pdf.relative_to(DOCS.parent)} đã ghi (cài pymupdf để đếm trang)")
+        return
+    doc = pymupdf.open(pdf)
+    refs = next((i + 1 for i, p in enumerate(doc) if "TÀI LIỆU THAM KHẢO" in p.get_text().upper()), None)
+    print(f"{pdf.relative_to(DOCS.parent)}: {doc.page_count} trang; tài liệu tham khảo bắt đầu ở trang {refs}")
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--tex-only", action="store_true")
     args = ap.parse_args()
+    sys.stdout.reconfigure(encoding="utf-8")  # console Windows mặc định cp1252
     generate()
     if not args.tex_only:
         compile_pdf()

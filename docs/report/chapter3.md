@@ -94,6 +94,12 @@ Vì Bảng III chỉ cho thấy một họ sản phẩm, Bảng IV dùng thêm m
 | 9 | CHILDRENS CUTLERY DOLLY GIRL ⇒ CHILDRENS CUTLERY SPACEBOY | 1,15% | 0,76 | 40,97 |
 | 10 | BLUE POLKADOT BOWL ⇒ PINK POLKADOT BOWL | 1,05% | 0,65 | 38,36 |
 
+Hình 1 cho thấy phân bố của toàn bộ 962 luật: 93,7% có support dưới 2% và 79,1% có lift dưới 20. Ba mươi hai luật có lift từ 60 trở lên đều thuộc họ HERB MARKER và có support không quá 1,12%, nằm ở góc trái trên của hình; luật có support cao nhất (4,17%, chứa JUMBO BAG PINK POLKADOT) chỉ có lift trung bình. Như vậy luật có lift cao nhất không phải luật phổ biến nhất.
+
+**Hình 1.** Support và confidence của 962 luật (minsup 0,01, minconf 0,5); màu biểu diễn lift theo thang log.
+
+![](figures/retail-rules.png)
+
 ### 6) Diễn giải
 
 Các luật thể hiện hai kiểu hành vi mua:
@@ -144,6 +150,12 @@ trong đó $\mathrm{supp}_{\neg c}(I)$ tính theo công thức trên với mẫu
 Bảng V cho số itemset của từng lớp ở ba mức minsup. Nhóm chọn **minsup = 0,3** cho phân tích chính. Lớp N không có itemset nào ở 0,3; ở 0,2 có đủ 240 item đơn (mỗi base ở mỗi vị trí chiếm khoảng 25%) nhưng không có cặp nào. Lớp N vì vậy đóng vai trò đối chứng: chuỗi không phải điểm nối không có tín hiệu gắn với vị trí.
 
 Ở minsup 0,5, các item có mặt ở ít nhất một nửa số chuỗi là: với EI, `p-2_A` (58%), `p-1_G` (81%), `p+1_G` (99,7%), `p+2_T` (99,0%), `p+4_A` (72%), `p+5_G` (86%); với IE, `p-3_C` (79%), `p-2_A` (99,6%), `p-1_G` (99,7%).
+
+Hình 2 tóm tắt tần suất của từng base ở từng vị trí trong mỗi lớp. Mỗi ô là support của một itemset một phần tử `p<vị trí>_<base>` trong lớp đó, đếm trực tiếp từ transaction để có đủ 240 item; hình chỉ mang tính mô tả và giúp đọc các itemset nhiều phần tử ở Bảng VI. Ở EI, các ô đậm tập trung ở −1 (G), +1 (G), +2 (T) và +5 (G); ở IE, ở −3 (C), −2 (A), −1 (G), cùng một dải C/T nhạt hơn trải từ khoảng −20 đến −5; lớp N gần như đồng đều.
+
+**Hình 2.** Tỷ lệ chuỗi có mỗi base tại mỗi vị trí, theo lớp. Đường dọc đánh dấu điểm nối giữa −1 và +1.
+
+![](figures/splice-positions.png){.wide}
 
 Bảng VI liệt kê các itemset có growth cao nhất của EI và IE.
 
