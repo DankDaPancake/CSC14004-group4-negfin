@@ -4,7 +4,7 @@ Chương này áp dụng cài đặt negFIN của nhóm [1] cho hai bài toán t
 
 ## A. Quy trình chung
 
-Mỗi ứng dụng gồm bốn bước: (1) tải dữ liệu công khai và kiểm SHA-256 theo `data/applications/manifest.toml`; (2) script `prepare.py` biến dữ liệu gốc thành file transaction SPMF (mỗi dòng một giao dịch, item là số nguyên dương) cùng bảng ánh xạ ID ↔ ý nghĩa; (3) chạy negFIN với `minsup` là tỷ lệ thập phân, ngưỡng tuyệt đối min_count = ⌈minsup·N⌉; (4) hậu xử lý: sinh luật kết hợp (ứng dụng A) hoặc so sánh pattern giữa các lớp (ứng dụng B), rồi giải mã ID thành tên để diễn giải.
+Mỗi ứng dụng gồm bốn bước: (1) tải dữ liệu công khai và kiểm SHA-256 theo `data/applications/manifest.toml`; (2) script `prepare.py` biến dữ liệu gốc thành file transaction SPMF (mỗi dòng một giao dịch, item là số nguyên dương) cùng bảng ánh xạ ID ↔ ý nghĩa; (3) chạy negFIN với `minsup` là tỷ lệ thập phân, ngưỡng tuyệt đối $m = \lceil \mathit{minsup}\cdot N\rceil$ với $N$ là số transaction; (4) hậu xử lý: sinh luật kết hợp (ứng dụng A) hoặc so sánh pattern giữa các lớp (ứng dụng B), rồi giải mã ID thành tên để diễn giải.
 
 Cả hai bộ dữ liệu lấy từ UCI Machine Learning Repository, giấy phép CC BY 4.0; dữ liệu gốc không đưa vào repo mà được notebook tải và kiểm checksum khi chạy.
 
@@ -28,25 +28,29 @@ Một hóa đơn là một transaction; item là `StockCode` sản phẩm (chu�
 |---|---|---:|---:|
 | Dữ liệu gốc | | 541.909 | 25.900 |
 | Bỏ hóa đơn không toàn số (`C…` hủy, `A…` điều chỉnh) | không phải giao dịch mua | 532.618 | 22.061 |
-| Bỏ `Quantity ≤ 0` | trả hàng, ghi nhận hỏng | 531.282 | 20.725 |
-| Bỏ `UnitPrice ≤ 0` | điều chỉnh kho | 530.103 | 19.959 |
+| Bỏ `Quantity` ≤ 0 | trả hàng, ghi nhận hỏng | 531.282 | 20.725 |
+| Bỏ `UnitPrice` ≤ 0 | điều chỉnh kho | 530.103 | 19.959 |
 | Chỉ giữ mã dạng `\d{5}[A-Z]*` | bỏ phí vận chuyển, phí ngân hàng, voucher… | 527.725 | 19.773 |
 
 Kết quả có N = 19.773 transaction, 3.791 sản phẩm khác nhau, trung bình 26,2 sản phẩm mỗi hóa đơn. Các dòng thiếu `CustomerID` được giữ lại vì phân tích giỏ hàng chỉ cần nội dung hóa đơn. Sản phẩm được đánh ID theo thứ tự sắp xếp của mã, nên ánh xạ ổn định với cùng dữ liệu và quy tắc lọc; tên hiển thị là mô tả xuất hiện nhiều nhất của mỗi mã.
 
 ### 4) Sinh luật kết hợp
 
-Với mỗi frequent itemset Z có ít nhất hai phần tử, sinh mọi luật X ⇒ Y với X ∪ Y = Z, X và Y khác rỗng và rời nhau. Gọi sup(·) là số transaction chứa tập đó, các độ đo là [3], [4]:
+Với mỗi frequent itemset $Z$ có ít nhất hai phần tử, sinh mọi luật $X \Rightarrow Y$ với $X \cup Y = Z$, $X$ và $Y$ khác rỗng và rời nhau. Gọi $\sup(\cdot)$ là số transaction chứa tập đó và $N$ là tổng số transaction; các độ đo là [3], [4]:
 
-- support(X ⇒ Y) = sup(X ∪ Y) / N
-- confidence(X ⇒ Y) = sup(X ∪ Y) / sup(X)
-- lift(X ⇒ Y) = confidence(X ⇒ Y) / (sup(Y) / N)
+$$\mathrm{supp}(X \Rightarrow Y) = \frac{\sup(X \cup Y)}{N},$$
 
-Do mọi tập con của một frequent itemset cũng frequent, sup(X) và sup(Y) đều có sẵn trong output của negFIN, không cần quét lại dữ liệu. Phép tính được kiểm bằng ví dụ tính tay trên CSDL toy 5 giao dịch của nhóm: luật {2} ⇒ {3} có sup({2,3}) = 3, sup({2}) = sup({3}) = 4, nên confidence = 0,75 và lift = 0,75 / 0,8 = 0,9375; với minconf = 0, 15 frequent itemset sinh đúng 50 luật (mỗi itemset k phần tử cho 2^k − 2 luật).
+$$\mathrm{conf}(X \Rightarrow Y) = \frac{\sup(X \cup Y)}{\sup(X)},$$
+
+$$\mathrm{lift}(X \Rightarrow Y) = \frac{\mathrm{conf}(X \Rightarrow Y)}{\sup(Y)/N}.$$
+
+Lift lớn hơn 1 nghĩa là $X$ và $Y$ cùng xuất hiện nhiều hơn so với khi chúng độc lập.
+
+Do mọi tập con của một frequent itemset cũng frequent, $\sup(X)$ và $\sup(Y)$ đều có sẵn trong output của negFIN, không cần quét lại dữ liệu. Phép tính được kiểm bằng ví dụ tính tay trên CSDL toy 5 giao dịch của nhóm: luật $\{2\} \Rightarrow \{3\}$ có $\sup(\{2,3\}) = 3$, $\sup(\{2\}) = \sup(\{3\}) = 4$, nên confidence $= 0{,}75$ và lift $= 0{,}75/0{,}8 = 0{,}9375$; với minconf $= 0$, 15 frequent itemset sinh đúng 50 luật (mỗi itemset $k$ phần tử cho $2^k - 2$ luật).
 
 ### 5) Tham số và kết quả
 
-Bảng II cho thấy số mẫu tăng nhanh khi hạ minsup. Nhóm chọn **minsup = 0,01** (min_count = 198 hóa đơn) để có itemset từ ba sản phẩm trở lên, và **minconf = 0,5**.
+Bảng II cho thấy số mẫu tăng nhanh khi hạ minsup. Nhóm chọn **minsup = 0,01** ($m = 198$ hóa đơn) để có itemset từ ba sản phẩm trở lên, và **minconf = 0,5**.
 
 **Bảng II.** negFIN trên Online Retail (N = 19.773)
 
@@ -56,9 +60,26 @@ Bảng II cho thấy số mẫu tăng nhanh khi hạ minsup. Nhóm chọn **mins
 | 0,02 | 396 | 395 | 3 |
 | 0,01 | 198 | 2.026 | 5 |
 
-Ở minsup 0,01 và minconf 0,5 có 962 luật, sinh từ 477 itemset; lift thấp nhất là 4,74, trung vị 12,03. Mười luật có lift cao nhất (76,8–78,8) đều thuộc họ sản phẩm HERB MARKER (que cắm đánh dấu chậu thảo mộc) và chỉ là các cách chia X/Y khác nhau của ba itemset; ví dụ THYME ⇒ ROSEMARY có support 1,12% (221 hóa đơn), confidence 0,93, lift 76,83. Để thấy được nhiều nhóm hơn, Bảng III dùng quy tắc khách quan: duyệt theo lift giảm dần, chỉ giữ luật không chứa sản phẩm nào đã xuất hiện ở các luật được giữ trước đó.
+Ở minsup 0,01 và minconf 0,5 có 962 luật, sinh từ 477 itemset; lift thấp nhất là 4,74, trung vị 12,03. Bảng III liệt kê mười luật có lift cao nhất. Tất cả thuộc họ sản phẩm HERB MARKER (que cắm đánh dấu chậu thảo mộc) và là các cách chia X/Y khác nhau của chỉ ba itemset: {THYME, ROSEMARY, PARSLEY} (luật 1–4), {THYME, ROSEMARY, BASIL} (5–8) và {THYME, ROSEMARY} (9–10); hai luật cùng một itemset có cùng support nhưng khác confidence vì mẫu số sup(X) khác nhau.
 
-**Bảng III.** Mười luật lift cao nhất không trùng sản phẩm (minsup 0,01, minconf 0,5)
+**Bảng III.** Mười luật có lift cao nhất (minsup 0,01, minconf 0,5). Mọi sản phẩm là HERB MARKER; chỉ ghi tên loại cây
+
+| # | X ⇒ Y | Supp. | Conf. | Lift |
+|---:|---|---:|---:|---:|
+| 1 | THYME ⇒ ROSEMARY + PARSLEY | 1,03% (203) | 0,86 | 78,77 |
+| 2 | ROSEMARY + PARSLEY ⇒ THYME | 1,03% (203) | 0,94 | 78,77 |
+| 3 | THYME + PARSLEY ⇒ ROSEMARY | 1,03% (203) | 0,95 | 78,52 |
+| 4 | ROSEMARY ⇒ THYME + PARSLEY | 1,03% (203) | 0,85 | 78,52 |
+| 5 | THYME + BASIL ⇒ ROSEMARY | 1,01% (200) | 0,95 | 78,46 |
+| 6 | ROSEMARY ⇒ THYME + BASIL | 1,01% (200) | 0,83 | 78,46 |
+| 7 | ROSEMARY + BASIL ⇒ THYME | 1,01% (200) | 0,93 | 77,97 |
+| 8 | THYME ⇒ ROSEMARY + BASIL | 1,01% (200) | 0,84 | 77,97 |
+| 9 | THYME ⇒ ROSEMARY | 1,12% (221) | 0,93 | 76,83 |
+| 10 | ROSEMARY ⇒ THYME | 1,12% (221) | 0,92 | 76,83 |
+
+Vì Bảng III chỉ cho thấy một họ sản phẩm, Bảng IV dùng thêm một quy tắc khách quan để minh họa nhiều nhóm hơn: duyệt danh sách luật theo lift giảm dần, chỉ giữ luật không chứa sản phẩm nào đã xuất hiện ở các luật được giữ trước đó.
+
+**Bảng IV.** Mười luật lift cao nhất không trùng sản phẩm (minsup 0,01, minconf 0,5)
 
 | # | X ⇒ Y | Supp. | Conf. | Lift |
 |---:|---|---:|---:|---:|
@@ -73,6 +94,12 @@ Bảng II cho thấy số mẫu tăng nhanh khi hạ minsup. Nhóm chọn **mins
 | 9 | CHILDRENS CUTLERY DOLLY GIRL ⇒ CHILDRENS CUTLERY SPACEBOY | 1,15% | 0,76 | 40,97 |
 | 10 | BLUE POLKADOT BOWL ⇒ PINK POLKADOT BOWL | 1,05% | 0,65 | 38,36 |
 
+Hình 1 cho thấy phân bố của toàn bộ 962 luật: 93,7% có support dưới 2% và 79,1% có lift dưới 20. Ba mươi hai luật có lift từ 60 trở lên đều thuộc họ HERB MARKER và có support không quá 1,12%, nằm ở góc trái trên của hình; luật có support cao nhất (4,17%, chứa JUMBO BAG PINK POLKADOT) chỉ có lift trung bình. Như vậy luật có lift cao nhất không phải luật phổ biến nhất.
+
+**Hình 1.** Support và confidence của 962 luật (minsup 0,01, minconf 0,5); màu biểu diễn lift theo thang log.
+
+![](figures/retail-rules.png)
+
 ### 6) Diễn giải
 
 Các luật thể hiện hai kiểu hành vi mua:
@@ -84,7 +111,7 @@ Confidence 0,65–0,95 nghĩa là phần lớn hóa đơn có vế trái cũng c
 
 ### 7) Giới hạn
 
-Dữ liệu chỉ của một nhà bán lẻ trong một năm, và vì nhiều khách là người bán sỉ nên luật phản ánh hành vi nhập hàng theo bộ nhiều hơn người tiêu dùng lẻ. Lift nhạy với sản phẩm hiếm: support riêng của các sản phẩm trong Bảng III chỉ khoảng 1,2–1,9%, nên cần đọc lift cùng support và confidence. minsup 0,01 bỏ qua sản phẩm có ít hơn 198 hóa đơn, do đó không thấy luật của mặt hàng ngách. Cuối cùng, luật chỉ thể hiện đồng xuất hiện, không phải quan hệ nhân quả.
+Dữ liệu chỉ của một nhà bán lẻ trong một năm, và vì nhiều khách là người bán sỉ nên luật phản ánh hành vi nhập hàng theo bộ nhiều hơn người tiêu dùng lẻ. Lift nhạy với sản phẩm hiếm: support riêng của các sản phẩm trong Bảng III và IV chỉ khoảng 1,2–1,9%, nên cần đọc lift cùng support và confidence. minsup 0,01 bỏ qua sản phẩm có ít hơn 198 hóa đơn, do đó không thấy luật của mặt hàng ngách. Cuối cùng, luật chỉ thể hiện đồng xuất hiện, không phải quan hệ nhân quả.
 
 ## C. Ứng dụng 2 — Pattern trên chuỗi DNA (Splice-junction)
 
@@ -98,13 +125,21 @@ Bộ Splice-junction Gene Sequences [5] (DOI 10.24432/C5M888) gồm 3.190 chuỗ
 
 ### 3) Tạo transaction
 
-Mỗi chuỗi là một transaction; item là cặp vị trí–base, ký hiệu `p<vị trí>_<base>`, ví dụ `p+1_G`. Với 60 vị trí và 4 base có 240 item, ID cố định: id = 4·(chỉ số vị trí) + (chỉ số base trong A, C, G, T) + 1, nên ánh xạ không phụ thuộc dữ liệu. Base mơ hồ (N, D, S, R; xuất hiện ở 15 chuỗi) không sinh item tại vị trí đó. Mã hóa kèm vị trí khiến mỗi transaction có đúng một item cho mỗi vị trí, giữ được thông tin "base nào ở vị trí nào" dù itemset là tập hợp không có thứ tự. Các chuỗi trùng của nguồn (185 chuỗi) được giữ nguyên.
+Mỗi chuỗi $s$ là một transaction $T(s)$; item là cặp vị trí–base, ký hiệu `p<vị trí>_<base>`. Ví dụ, chuỗi EI đầu tiên của tập dữ liệu (ATRINS-DONOR-521) bắt đầu bằng `CCA…`, có `G` ở −1, `GT` ở +1..+2 và kết thúc bằng `G`, nên $T(s)$ = {`p-30_C`, `p-29_C`, `p-28_A`, …, `p-1_G`, `p+1_G`, `p+2_T`, …, `p+30_G`}, gồm 60 item. Với 60 vị trí và 4 base có 240 item; ID cố định $\mathit{id} = 4j + b + 1$, với $j \in \{0,\ldots,59\}$ là chỉ số vị trí và $b \in \{0,1,2,3\}$ là chỉ số base theo thứ tự A, C, G, T, nên ánh xạ không phụ thuộc dữ liệu. Base mơ hồ (N, D, S, R; xuất hiện ở 15 chuỗi) không sinh item tại vị trí đó, nên các chuỗi này có ít hơn 60 item. Mã hóa kèm vị trí khiến mỗi transaction có tối đa một item cho mỗi vị trí, giữ được thông tin "base nào ở vị trí nào" dù itemset là tập hợp không có thứ tự. Các chuỗi trùng của nguồn (185 chuỗi) được giữ nguyên và được đếm như các transaction riêng.
 
-negFIN chạy riêng cho từng lớp; support tính trên số chuỗi của lớp đó. Để so sánh, với mỗi itemset của lớp đích, nhóm đếm support ở cả ba lớp và tính growth = support trong lớp đích / support trong các lớp còn lại gộp lại (∞ nếu các lớp còn lại không có itemset đó) [6].
+Gọi $D_c$ là tập chuỗi của lớp $c \in \{\mathrm{EI}, \mathrm{IE}, \mathrm{N}\}$. negFIN chạy riêng trên từng $D_c$ với ngưỡng $m_c = \lceil \mathit{minsup}\cdot|D_c|\rceil$, và support theo lớp của itemset $I$ được tính trên đúng mẫu số của lớp đó:
+
+$$\mathrm{supp}_c(I) = \frac{|\{s \in D_c : I \subseteq T(s)\}|}{|D_c|}.$$
+
+Để so sánh, với mỗi itemset $I$ của lớp đích $c$, nhóm đếm lại $\mathrm{supp}_{c'}(I)$ ở cả ba lớp trực tiếp từ transaction và tính độ tăng (growth) [6] so với các lớp còn lại gộp chung $D_{\neg c} = \bigcup_{c' \neq c} D_{c'}$:
+
+$$\mathrm{growth}_c(I) = \frac{\mathrm{supp}_c(I)}{\mathrm{supp}_{\neg c}(I)},$$
+
+trong đó $\mathrm{supp}_{\neg c}(I)$ tính theo công thức trên với mẫu số $|D_{\neg c}|$; growth $= \infty$ khi $I$ không xuất hiện ở lớp nào khác. Vì lớp N có số chuỗi gấp khoảng hai lần EI hoặc IE, $\mathrm{supp}_{\neg c}$ là tỷ lệ có trọng số theo kích thước lớp, không phải trung bình cộng của hai tỷ lệ.
 
 ### 4) Tham số và kết quả
 
-**Bảng IV.** Số itemset theo lớp và minsup
+**Bảng V.** Số itemset theo lớp và minsup
 
 | Lớp | N chuỗi | minsup 0,5 | 0,3 | 0,2 |
 |---|---:|---:|---:|---:|
@@ -112,11 +147,19 @@ negFIN chạy riêng cho từng lớp; support tính trên số chuỗi của l�
 | IE | 768 | 7 | 331 | 1.284 |
 | N | 1.655 | 0 | 0 | 240 |
 
-Nhóm chọn **minsup = 0,3** cho phân tích chính. Lớp N không có itemset nào ở 0,3; ở 0,2 có đủ 240 item đơn (mỗi base ở mỗi vị trí chiếm khoảng 25%) nhưng không có cặp nào. Lớp N vì vậy đóng vai trò đối chứng: chuỗi không phải điểm nối không có tín hiệu gắn với vị trí.
+Bảng V cho số itemset của từng lớp ở ba mức minsup. Nhóm chọn **minsup = 0,3** cho phân tích chính. Lớp N không có itemset nào ở 0,3; ở 0,2 có đủ 240 item đơn (mỗi base ở mỗi vị trí chiếm khoảng 25%) nhưng không có cặp nào. Lớp N vì vậy đóng vai trò đối chứng: chuỗi không phải điểm nối không có tín hiệu gắn với vị trí.
 
 Ở minsup 0,5, các item có mặt ở ít nhất một nửa số chuỗi là: với EI, `p-2_A` (58%), `p-1_G` (81%), `p+1_G` (99,7%), `p+2_T` (99,0%), `p+4_A` (72%), `p+5_G` (86%); với IE, `p-3_C` (79%), `p-2_A` (99,6%), `p-1_G` (99,7%).
 
-**Bảng V.** Itemset có growth cao nhất của mỗi lớp (minsup 0,3); support tính theo từng lớp
+Hình 2 tóm tắt tần suất của từng base ở từng vị trí trong mỗi lớp. Mỗi ô là support của một itemset một phần tử `p<vị trí>_<base>` trong lớp đó, đếm trực tiếp từ transaction để có đủ 240 item; hình chỉ mang tính mô tả và giúp đọc các itemset nhiều phần tử ở Bảng VI. Ở EI, các ô đậm tập trung ở −1 (G), +1 (G), +2 (T) và +5 (G); ở IE, ở −3 (C), −2 (A), −1 (G), cùng một dải C/T nhạt hơn trải từ khoảng −20 đến −5; lớp N gần như đồng đều.
+
+**Hình 2.** Tỷ lệ chuỗi có mỗi base tại mỗi vị trí, theo lớp. Đường dọc đánh dấu điểm nối giữa −1 và +1.
+
+![](figures/splice-positions.png){.wide}
+
+Bảng VI liệt kê các itemset có growth cao nhất của EI và IE.
+
+**Bảng VI.** Itemset có growth cao nhất của mỗi lớp (minsup 0,3); support tính theo từng lớp
 
 | Lớp | Itemset | EI | IE | N | Growth |
 |---|---|---:|---:|---:|---:|
@@ -139,14 +182,14 @@ Kết quả được đối chiếu với trình tự consensus đã công bố 
 
 ### 6) Giới hạn
 
-Itemset chỉ biểu diễn đồng xuất hiện của các base ở vị trí tuyệt đối, không có thứ tự hay khoảng cách tương đối; vì vậy một motif có thể dịch vị trí như polypyrimidine tract bị tách thành nhiều itemset rời rạc. Growth chỉ mô tả mức đặc trưng trên dữ liệu này, không phải một bộ phân lớp đã được đánh giá. Dữ liệu từ năm 1991, chỉ gồm gen linh trưởng và điểm nối GT-AG. Chương này chỉ khẳng định các pattern khớp với consensus đã công bố; các pattern còn lại được xem là quan sát.
+Itemset chỉ biểu diễn đồng xuất hiện của các base ở vị trí tuyệt đối, không có thứ tự hay khoảng cách tương đối; vì vậy một motif có thể dịch vị trí như polypyrimidine tract bị tách thành nhiều itemset rời rạc. Growth chỉ mô tả mức đặc trưng trên chính dữ liệu này: không có tập kiểm tra riêng, không có kiểm định thống kê, nên không phải bằng chứng về khả năng phân lớp chuỗi mới; growth = ∞ của itemset EI trong Bảng VI cũng chỉ có nghĩa là không quan sát thấy ở 2.423 chuỗi IE và N (768 + 1.655). Các chuỗi trùng được đếm nhiều lần nên support có thể lệch nhẹ so với tập chuỗi duy nhất. Dữ liệu từ năm 1991, chỉ gồm gen linh trưởng và điểm nối GT-AG, nên không suy rộng cho loài khác hay các loại intron hiếm. Chương này chỉ khẳng định các pattern khớp với consensus đã công bố; các pattern còn lại được xem là quan sát.
 
 ## D. Tái lập và kiểm chứng
 
 Notebook `notebooks/demo.ipynb` dùng Julia có sẵn hoặc tự cài Julia 1.12.0 (kiểm SHA-256), lấy mã nguồn ở commit chỉ định, tải hai bộ dữ liệu và kiểm checksum, rồi chạy lần lượt ví dụ toy, ứng dụng 1 và ứng dụng 2 qua `run.jl`; cell cuối in commit, phiên bản Julia và mọi tham số. Notebook đã được chạy Run all trên runtime Colab mới ở commit `7e3e9b0` với Julia 1.12.6, cho đúng các số liệu trong chương này; bản có output được chia sẻ công khai tại liên kết trong README. Các bước kiểm chứng đã thực hiện:
 
 - 12 unit test Python cho tiền xử lý, sinh luật và so sánh lớp, gồm ví dụ tính tay trên CSDL toy.
-- 19 luật khác nhau trong Bảng III và mười luật lift cao nhất được tính lại support, confidence, lift trực tiếp từ file transaction, không qua negFIN: khớp hoàn toàn.
+- 19 luật khác nhau trong Bảng III và IV được tính lại support, confidence, lift trực tiếp từ file transaction, không qua negFIN: khớp hoàn toàn.
 - Script so sánh lớp đếm lại support của toàn bộ 611 itemset (EI 280, IE 331) từ transaction và báo lỗi nếu khác output của negFIN: không có sai lệch.
 
 ## Tài liệu tham khảo (Chương 3)

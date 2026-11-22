@@ -1,0 +1,64 @@
+% Báo cáo đồ án CSC14004 — nhóm 4. Biên dịch bằng XeLaTeX (Overleaf: Menu > Compiler > XeLaTeX)
+% hoặc `python docs/report/ieee/build.py`. Ba chương nằm trong generated/, sinh từ docs/report/chapterN.md:
+% sửa file Markdown rồi chạy lại build.py, không sửa trực tiếp generated/*.tex.
+\documentclass[conference]{IEEEtran}
+
+\usepackage{fontspec}
+\setmainfont{texgyretermes}[Extension=.otf, UprightFont=*-regular, BoldFont=*-bold,
+  ItalicFont=*-italic, BoldItalicFont=*-bolditalic]
+\setmonofont{texgyrecursor}[Extension=.otf, UprightFont=*-regular, BoldFont=*-bold,
+  ItalicFont=*-italic, BoldItalicFont=*-bolditalic, Scale=0.95]
+\usepackage{amsmath,amssymb}
+\interdisplaylinepenalty=2500
+\usepackage{array,tabularx}
+\usepackage{graphicx}
+\graphicspath{{../figures/}{figures/}}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+\urlstyle{tt}
+
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\renewcommand{\tablename}{Bảng}
+\renewcommand{\figurename}{Hình}
+\renewcommand{\abstractname}{Tóm tắt}
+\renewcommand{\IEEEkeywordsname}{Từ khóa}
+\renewcommand{\refname}{Tài liệu tham khảo}
+
+\begin{document}
+
+\title{Cài đặt, đánh giá và ứng dụng thuật toán negFIN\\khai thác tập phổ biến}
+
+% TODO(nhóm): điền họ tên đầy đủ, MSSV của từng thành viên và tên môn học chính thức.
+\author{\IEEEauthorblockN{Đăng (thuật toán), Hiếu (thực nghiệm), Tiến (ứng dụng)}
+\IEEEauthorblockA{Nhóm 4 — CSC14004\\
+Trường Đại học Khoa học Tự nhiên, ĐHQG-HCM\\
+\url{https://github.com/DankDaPancake/CSC14004-group4-negfin}}}
+
+\maketitle
+
+\begin{abstract}
+Báo cáo trình bày cài đặt thuật toán negFIN bằng Julia, đánh giá thực nghiệm hai biến thể và áp dụng cho hai bài toán thực tế. Bản Baseline biểu diễn bitmap của cây BMC bằng số nguyên lớn; bản Optimized chuyển bitmap sang mảng word 64 bit trước khi lọc NegNodeset. Cả hai cho kết quả trùng khớp hoàn toàn với SPMF trên năm cơ sở dữ liệu chuẩn. Trên cùng một máy, Optimized có thời gian cold thấp hơn ở 32/35 cấu hình toàn tập, nhanh nhất 3,88 lần ở Accidents, nhưng tăng bộ nhớ đỉnh ở T10I4D100K. Ở ứng dụng giỏ hàng trên Online Retail, 962 luật kết hợp cho thấy hai hành vi mua: mua trọn bộ sưu tập và phối nhiều màu của cùng một thiết kế. Ở ứng dụng trên chuỗi DNA Splice-junction, các itemset vị trí–base đặc trưng của từng lớp tái hiện trình tự consensus đã công bố của vị trí donor và acceptor. Mã nguồn, dữ liệu và notebook Colab đều công khai và tái lập được.
+\end{abstract}
+
+\begin{IEEEkeywords}
+khai thác tập phổ biến, negFIN, luật kết hợp, phân tích giỏ hàng, chuỗi DNA, Julia
+\end{IEEEkeywords}
+
+\section{Giới thiệu}
+Khai thác tập phổ biến là bước nền của phân tích luật kết hợp~\cite{agrawal}: tìm mọi tập item xuất hiện trong ít nhất một tỷ lệ giao dịch cho trước. negFIN~\cite{negfin} tính support bằng cách đếm phần giao dịch bị mất khi mở rộng một tập, dựa trên cây mã hóa bitmap và NegNodeset, kết hợp với quy tắc promotion để giảm số nhánh phải duyệt.
+
+Nhóm đóng góp ba phần. Mục~\ref{sec:ch1} mô tả cài đặt negFIN bằng Julia, gồm bản Baseline và bản Optimized, cùng kết quả đối chiếu với thư viện SPMF~\cite{spmf}. Mục~\ref{sec:ch2} so sánh hai biến thể về thời gian, bộ nhớ đỉnh và khả năng mở rộng trên năm tập dữ liệu chuẩn. Mục~\ref{sec:ch3} áp dụng cài đặt của nhóm cho phân tích giỏ hàng và tìm pattern trên chuỗi DNA. Mục~\ref{sec:conclusion} tóm tắt kết quả và hướng cải tiến.
+
+\input{generated/chapter1}
+\input{generated/chapter2}
+\input{generated/chapter3}
+
+\section{Kết luận}\label{sec:conclusion}
+Nhóm đã cài đặt negFIN bằng Julia với hai biến thể cho kết quả trùng khớp SPMF trên mọi cấu hình kiểm tra. Biểu diễn bitmap bằng mảng word 64 bit giúp giảm thời gian ở hầu hết cấu hình nhưng có thể tăng bộ nhớ đỉnh khi dữ liệu thưa, như ở T10I4D100K. Hai ứng dụng cho thấy cùng một cài đặt có thể dùng cho dữ liệu bán lẻ và dữ liệu sinh học, với kết quả diễn giải được và kiểm chứng độc lập.
+
+Hai hướng cải tiến tiếp theo được rút ra từ thực nghiệm: (1) đo heap theo từng giai đoạn và lưu các bitmap ít bit bật bằng cấu trúc thưa để giảm bộ nhớ đỉnh trên dữ liệu thưa; (2) đo riêng chi phí ghi kết quả và ghi theo lô cho các cấu hình sinh hàng chục triệu mẫu như Chess và Mushroom. Với hai ứng dụng, có thể bổ sung kiểm định thống kê cho luật và cho pattern đặc trưng lớp, và mở rộng sang dữ liệu bán lẻ nhiều cửa hàng hoặc bộ gen của các loài khác.
+
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+
+\end{document}

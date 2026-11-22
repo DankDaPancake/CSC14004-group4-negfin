@@ -5,3 +5,12 @@
 *.jar
 *.tmp
 /data/applications/raw/
+/docs/report/ieee/*.pdf
+/docs/report/ieee/*.aux
+/docs/report/ieee/*.log
+/docs/report/ieee/*.bbl
+/docs/report/ieee/*.blg
+/docs/report/ieee/*.out
+/docs/report/ieee/*.fls
+/docs/report/ieee/*.fdb_latexmk
+/docs/report/ieee/*.xdv
