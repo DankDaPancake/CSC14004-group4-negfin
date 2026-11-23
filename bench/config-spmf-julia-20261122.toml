@@ -1,0 +1,19 @@
+schema_version = 1
+manifest = "data/benchmark/manifest.toml"
+reference_config = "bench/config-baseline-20261119.toml"
+cold_repetitions = 3
+timeout_seconds = 1800
+output_cap_bytes = 2147483648
+rss_cap_bytes = 8589934592
+poll_seconds = 0.02
+minimum_free_disk_bytes = 21474836480
+validation_chunk_bytes = 67108864
+validation_fan_in = 32
+validation_scratch_cap_bytes = 17179869184
+
+[selected]
+Chess = ["0.9", "0.55", "0.5", "0.45", "0.4", "0.35", "0.3"]
+Retail = ["0.01", "0.006", "0.005", "0.004", "0.003", "0.002", "0.001"]
+Mushroom = ["0.8", "0.15", "0.1", "0.07", "0.05", "0.03", "0.02"]
+Accidents = ["0.9", "0.6", "0.45", "0.35", "0.3", "0.25", "0.2"]
+T10I4D100K = ["0.02", "0.015", "0.01", "0.008", "0.006", "0.004", "0.002"]

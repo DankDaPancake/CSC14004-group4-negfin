@@ -33,3 +33,18 @@ Các lần chạy hoàn chỉnh cho mỗi variant: 35 full-data cold configs × 
 Đã tính lại cold median từ ba lượt trong `runs.csv` cho Retail 0,001 (36,1647333 s), Chess 0,3 (41,6806076 s), Accidents 0,2 (49,9652722 s), khớp bảng báo cáo sau làm tròn. Đây là đối chiếu đại diện, chưa phải kiểm toán toàn bộ bảng.
 
 Phần bàn giao benchmark Baseline vs Optimized đã đo scalability ở 10/25/50/75/100% cho cả năm dataset trên cùng máy; xem gói mới ở trên và [bản phân tích kết quả](benchmark-baseline-optimized-results.md). Gói baseline cũ `benchmark-baseline-20261113.zip` và giới hạn của nó vẫn được lưu giữ riêng, không ghép số liệu khác máy/commit vào phép so sánh paired. Chưa gửi liên lạc ra ngoài hoặc thực hiện handoff cho Đăng.
+
+## Gói SPMF–Julia Optimized đo mới (22-11-2026)
+
+Đã đo mới 210 lượt chính, 35/35 cấu hình đủ ba repetition mỗi implementation và kiểm chứng output; 18 lượt pilot riêng. Root evidence: `results/spmf-julia-cold-20261122-v3/`, fingerprint `0490b0be675929b57d3f47a3e823c8ed1fb91e856b46127efc162077a98dddd4`. Không trộn campaign Baseline–Optimized cũ hoặc pilot v1/v2.
+
+- ZIP raw evidence local: `results/spmf-julia-package-20261122/raw-evidence.zip`.
+- SHA-256: `d95cf909f53a2b31ac74175ebd16eabcd13b39636b5133abbcc1cedd529d8837`.
+- **1.136 tệp** và `SHA256SUMS.txt`; đã kiểm ZIP integrity, giải nén thư mục mới và tính lại từng checksum. Có README, source/config/machine/runtime/input provenance, CSV, measurement/validation JSON, comparisons, logs/stats. Không có dataset, executable/jar hay output itemset lớn.
+- Summary đầy đủ: `results/spmf-julia-final-20261122/summary.csv` và `summary.json` (35 cặp accepted, incomplete0). Min–max và độ chính xác gốc được giữ trong CSV.
+- Hình: `results/spmf-julia-final-20261122/figures/`, 11 hình × PNG/PDF, `captions.md`, `figure-data.csv`. Đây là file sinh local/ignored, **không nằm trong clone mới và không được gộp vào ZIP raw evidence**; cần sao lưu riêng cùng ZIP. Có contact sheet ở thư mục final.
+- Báo cáo: [phụ lục 35 điểm](benchmark-spmf-julia-results.md), [Chương2 mục2.7](../report/chapter2.md). Generated IEEE TeX/PDF không sửa.
+
+README trong root evidence nêu timer whole-process (startup/JIT/read/write), peak working set khác heap/allocation, caps, exact-ceil CLI mapping chỉ cho boundary pilot, resume sau harness timeout và giới hạn ba lần lặp. Source đã đo là working tree dirty trên base `70ad97c`, không phải commit sạch. Output lớn được xóa sau khi validation durable: gói giữ digest/bằng chứng chứ không cho so lại original bytes nếu không chạy miners lại.
+
+Bàn giao local đã chuẩn bị cho Tiến, **chưa gửi ra ngoài**, chưa commit/push/PR. Mirror HF/Kaggle khớp hash chưa thiết lập; giữ URL SPMF và manifest. Đề xuất tối ưu/độ dài transaction vẫn chờ quyết định của Đăng. Gói này hoàn tất phép đo full-data SPMF–Julia, không bổ sung scalability SPMF; scalability cũ và trade-off RSS T10I4D100K vẫn có provenance riêng.

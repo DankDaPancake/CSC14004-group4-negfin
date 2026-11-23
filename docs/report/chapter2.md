@@ -1,6 +1,6 @@
-# Chương 2. Đánh giá thực nghiệm Baseline và Optimized
+# Chương 2. Đánh giá thực nghiệm negFIN và đối chiếu SPMF
 
-Số liệu ngày 19-11-2026 được đối chiếu với gói bàn giao của Hiếu. Gói có 110 tệp khớp SHA-256. Phân tích dùng 1.560 lượt hợp lệ trên cùng một máy, sau khi loại 5 dòng chạy thử Chess không có cặp Optimized.
+Chương này tách hai campaign: Baseline–Optimized ngày 19-11-2026 (1.560 lượt hợp lệ, gói 110 tệp khớp SHA-256, loại 5 dòng trial Chess không ghép cặp) và **SPMF NegFIN–Julia Optimized đo mới ngày 22-11-2026** (210 lượt cold chính, 35 cấu hình đủ kiểm chứng). Hai nguồn không được ghép thành phép so ba bên hay dùng lại thời gian Julia cũ. Mục 2.1–2.6 giữ số liệu Baseline–Optimized; mục 2.7 trình bày campaign SPMF mới.
 
 ## 2.1. Mục tiêu
 
@@ -132,3 +132,54 @@ Mỗi tập dữ liệu được đo ở các phần tiền tố 10%, 25%, 50%, 
 - Dữ liệu thô, config, thông tin máy, checksum và log được lưu ngoài Git. Xem [hướng dẫn bàn giao](../validation/benchmark-handoff.md) để xác minh gói và tái tạo biểu đồ.
 
 Bảng chi tiết cold toàn dataset và subset SHA256: [benchmark results appendix](../validation/benchmark-baseline-optimized-results.md).
+
+## 2.7. Đối chiếu mới với SPMF NegFIN
+
+### 2.7.1. Thiết lập và tính đúng
+
+Campaign ngày 22-11-2026 đo **SPMF 2.69 / Temurin 25.0.5.1+2** và **Julia 1.12.0 Optimized** trên cùng máy ở Bảng I, cùng năm snapshot và toàn bộ 35 mức minsup của Bảng III. Mỗi implementation có ba process mới mỗi điểm, tổng cộng 210 lượt chính; 18 lượt pilot tách riêng. Thứ tự lần 1/3 là SPMF→Julia, lần 2 Julia→SPMF, chạy tuần tự. Julia dùng `--startup-file=no --threads=1`; Java dùng `-XX:ActiveProcessorCount=1 -Xmx4g`. Heap Java không phải quota RSS tương đương.
+
+Timer monotonic bao gồm startup/JIT/đọc/mining/ghi/exit; không xóa filesystem cache. Peak RSS là native Windows peak working set của child process, không phải allocation hay heap. Giới hạn mỗi process: 1.800 giây, output 2 GiB, RSS 8 GiB; dung lượng đĩa tối thiểu 20 GiB. Validation ngoài timer dùng external sort, không nạp toàn bộ output vào RAM.
+
+Pilot đạt 9/9 điều kiện, gồm toy, fixture rìa ngưỡng, năm mức dễ và hai output lớn. Với mỗi cấu hình chính, lần đầu so chính xác từng itemset/support sau canonical hóa và phát hiện duplicate; hai lần sau phải khớp count/digest. **35/35 cấu hình đạt**, không có missing/extra/support mismatch. Support tuyệt đối là `ceil(minsup_decimal × N)` chính xác. Fixture N=100/minsup=0.07 phát hiện SPMF double ceiling=8 thay vì7; mapping CLI được ghi rõ và so với output tính tay. **35 mức thực không cần đổi chuỗi minsup**. Xem [phụ lục mới](../validation/benchmark-spmf-julia-results.md) cho threshold từng điểm và bằng chứng.
+
+Provenance: git base `70ad97c`, working tree chưa commit; fingerprint `0490b0be675929b57d3f47a3e823c8ed1fb91e856b46127efc162077a98dddd4`. Source/config/hash, argv, logs và measurement/validation JSON nằm trong gói evidence riêng. Không gọi đây là revision benchmark sạch đã commit.
+
+### 2.7.2. Kết quả
+
+**Bảng V.** Mức minsup thấp nhất của mỗi dataset, median [min–max] ba lần cold mới. Bảng đầy đủ 35 điểm ở phụ lục; RSS là median MiB theo thứ tự SPMF / Julia.
+
+| Dataset | minsup | Patterns | SPMF wall s [min–max] | Julia wall s [min–max] | RSS MiB S/J |
+|---|---:|---:|---|---|---:|
+| Chess | 0.3 | 37,282,962 | 5.154 [4.745–5.963] | 53.578 [36.420–57.130] | 204.2 / 349.8 |
+| Mushroom | 0.02 | 22,840,275 | 2.897 [2.885–3.105] | 20.069 [19.938–20.283] | 204.4 / 356.9 |
+| Retail | 0.001 | 7,589 | 3.386 [3.377–3.527] | 11.617 [11.389–11.938] | 369.5 / 2084.4 |
+| Accidents | 0.2 | 889,883 | 6.696 [6.464–6.703] | 12.182 [12.181–12.332] | 352.1 / 2618.8 |
+| T10I4D100K | 0.002 | 13,255 | 2.514 [2.485–2.541] | 9.222 [9.201–9.246] | 341.8 / 1937.3 |
+
+SPMF có median whole-process wall và peak working set thấp hơn ở cả35 điểm. Tỉ số median Julia/SPMF nằm trong **1,82–14,60×**, mô tả phép đo end-to-end trên máy này, không phải tăng tốc mining-only hay kết luận Java tốt hơn Julia nói chung. Ở support cao, startup/JIT có thể chiếm phần đáng kể; chưa có profiling theo pha để tách nguyên nhân.
+
+**Bảng VI.** Peak working set tại mức thứ tư trong bảy minsup, median ba lần mới (MiB).
+
+| Dataset | minsup | SPMF | Julia Optimized |
+|---|---:|---:|---:|
+| Chess | 0.45 | 199.6 | 340.8 |
+| Mushroom | 0.07 | 195.8 | 344.0 |
+| Retail | 0.004 | 227.5 | 578.9 |
+| Accidents | 0.35 | 256.7 | 1275.8 |
+| T10I4D100K | 0.008 | 296.9 | 1400.4 |
+
+### 2.7.3. Hình, thảo luận và giới hạn
+
+Bộ hình local `results/spmf-julia-final-20261122/figures/` có 11 hình PNG/PDF kèm `captions.md` và `figure-data.csv`: 5 runtime–minsup (median và min–max), 5 itemsets–minsup (cùng output đã xác minh), 1 RSS tại mức thứ tư. Không đưa file sinh tự động vào Git; các đường dẫn này không có sẵn trong clone mới, nhận qua gói bàn giao local.
+
+- **Caption runtime:** “Median ba process cold mới SPMF NegFIN và Julia Optimized; whisker min–max; whole-process wall gồm startup/JIT/read/write; support giảm từ trái sang phải.”
+- **Caption itemsets:** “Số frequent itemset khớp giữa hai implementation sau so itemset/support lần đầu và count/digest ở hai lần sau; không phải số đo thời gian.”
+- **Caption RSS:** “Median native Windows peak working set của ba process tại minsup thứ tư; whisker min–max; Java heap không phải RSS.”
+- **Caption scalability cũ:** “Baseline–Optimized ngày19-11-2026, các prefix10/25/50/75/100%; không phải campaign SPMF mới, không ghép số đo giữa hai nguồn.”
+
+Chess/Mushroom là trường hợp output lớn: mức thấp nhất sinh37,28/22,84 triệu itemset. Chi phí format/ghi/duyệt output có thể ảnh hưởng mạnh; chưa đo riêng nên không quy kết toàn bộ chênh lệch cho mining. Retail/T10I4D100K sinh ít mẫu hơn nhưng RSS Julia tăng khi hạ support; đây chưa phải bằng chứng nhân quả về bitmap/heap. Các ý tưởng profiling heap, cấu trúc thưa, ghi theo lô và thí nghiệm chiều dài transaction **vẫn chờ quyết định của Đăng**, không được trình bày là tối ưu đã duyệt hoặc thực hiện.
+
+Giữ nguyên trade-off T10I4D100K trong mục2.4: Optimized nhanh hơn Baseline nhưng RSS có thể cao hơn ở prefix75–100%. Kết quả SPMF mới không phủ định hoặc thay thế phép so cũ. Chưa đo scalability SPMF.
+
+Ba lần lặp trên một máy chưa đủ suy luận thống kê; riêng Chess0,3 Julia có khoảng36,420–57,130s, không loại mẫu chậm. Campaign bị ngắt do giới hạn harness2 giờ rồi tiếp tục từng cấu hình theo checkpoint, cùng fingerprint, không thay số đo đã lưu. Các pilot thất bại trước v3 được giữ riêng. Chưa xác minh mirror Hugging Face/Kaggle khớp byte/hash; giữ nguồn SPMF và manifest, không dùng dataset cùng tên nhưng khác encoding. Gói evidence không chứa original itemset output đã xóa sau validation; cần chạy lại để so byte một lần nữa. Xem [hướng dẫn bàn giao](../validation/benchmark-handoff.md); chưa gửi gói ra ngoài và chưa tạo PR.
