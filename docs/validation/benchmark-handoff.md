@@ -47,4 +47,13 @@ Phần bàn giao benchmark Baseline vs Optimized đã đo scalability ở 10/25/
 
 README trong root evidence nêu timer whole-process (startup/JIT/read/write), peak working set khác heap/allocation, caps, exact-ceil CLI mapping chỉ cho boundary pilot, resume sau harness timeout và giới hạn ba lần lặp. Source đã đo là working tree dirty trên base `70ad97c`, không phải commit sạch. Output lớn được xóa sau khi validation durable: gói giữ digest/bằng chứng chứ không cho so lại original bytes nếu không chạy miners lại.
 
-Bàn giao local đã chuẩn bị cho Tiến, **chưa gửi ra ngoài**, chưa commit/push/PR. Mirror HF/Kaggle khớp hash chưa thiết lập; giữ URL SPMF và manifest. Đề xuất tối ưu/độ dài transaction vẫn chờ quyết định của Đăng. Gói này hoàn tất phép đo full-data SPMF–Julia, không bổ sung scalability SPMF; scalability cũ và trade-off RSS T10I4D100K vẫn có provenance riêng.
+Kết quả và Chương 2 đã vào `main` qua [PR #16](https://github.com/DankDaPancake/CSC14004-group4-negfin/pull/16). Gói nhận được tại `results/spmf-julia-handoff-20261122/` chứa `evidence/raw-evidence.zip`, `results/summary.csv` và `results/figures/` (11 hình PNG/PDF, caption và dữ liệu hình). Đã xác minh 35 checksum của gói ngoài và 1.136 checksum bên trong ZIP. Gói nằm ngoài Git.
+
+Đăng đã tính lại median và min–max từ 210 lượt chính. Cả 70 dòng summary khớp dữ liệu hình. Bảng V và VI của Chương 2 cùng 35 dòng phụ lục khớp sau làm tròn. Bằng chứng của 35 cấu hình ghi nhận itemset/support khớp ở cặp đầu và digest chuẩn hóa khớp ở hai lần lặp tiếp theo. SPMF có median thời gian toàn tiến trình và peak working set thấp hơn tại cả 35 điểm trên máy đo. Phạm vi thời gian gồm khởi động, JIT, đọc và ghi.
+
+Tiến dùng hình và caption trong gói để cập nhật bản IEEE, tóm tắt và kết luận. Dùng riêng kết quả scalability Baseline–Optimized ngày 19-11 cho phần về kích thước đầu vào; đợt 22-11 đo SPMF–Julia trên toàn tập. Mirror HF/Kaggle khớp hash vẫn chưa được xác minh.
+
+## Bổ sung của Đăng
+
+- [Pilot độ dài giao dịch](transaction-length-pilot.md) hoàn tất 24 lượt warm count ở bốn độ dài. Khi tăng từ 10 lên 20 item/giao dịch, cả hai mức đều có 512 mẫu, còn số node BMC tăng từ 86.572 lên 183.235 và thời gian tăng ở cả hai biến thể. Dùng ví dụ này cho phần dữ liệu tổng hợp trong Chương 2. CSV từng lượt nằm tại `results/transaction-length-pilot-20261125.csv`.
+- Dùng hai đề xuất trong pilot cho phần hướng phát triển: thử bitmap thưa sau khi định vị chi phí heap và thử ghi theo lô sau khi đo riêng chi phí xuất. Đây là các thí nghiệm tiếp theo để đánh giá bộ nhớ và thời gian.
