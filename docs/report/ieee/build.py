@@ -3,7 +3,7 @@
     python docs/report/ieee/build.py            # sinh generated/*.tex, biên dịch nếu có tectonic/latexmk
     python docs/report/ieee/build.py --tex-only # chỉ sinh .tex (để tải lên Overleaf)
 
-Cần pandoc >= 3. Biên dịch cần tectonic hoặc latexmk + xelatex.
+Cần pandoc >= 3. Biên dịch cần tectonic, latexmk + xelatex hoặc xelatex + bibtex.
 """
 import argparse
 import re
@@ -68,12 +68,19 @@ def generate():
 
 def compile_pdf():
     tectonic, latexmk = shutil.which("tectonic"), shutil.which("latexmk")
+    xelatex, bibtex = shutil.which("xelatex"), shutil.which("bibtex")
+    # MiKTeX can provide latexmk.exe even when its Perl runtime is absent.
+    latexmk_ready = latexmk and (sys.platform != "win32" or shutil.which("perl"))
     if tectonic:
         subprocess.run([tectonic, "main.tex"], cwd=HERE, check=True)
-    elif latexmk and shutil.which("xelatex"):
+    elif latexmk_ready and xelatex:
         subprocess.run([latexmk, "-xelatex", "-interaction=nonstopmode", "main.tex"], cwd=HERE, check=True)
+    elif xelatex and bibtex:
+        tex = [xelatex, "-interaction=nonstopmode", "-halt-on-error", "main.tex"]
+        for command in (tex, [bibtex, "main"], tex, tex):
+            subprocess.run(command, cwd=HERE, check=True)
     else:
-        print("Không có tectonic/latexmk: tải docs/report/ieee/ lên Overleaf, chọn compiler XeLaTeX.")
+        print("Không có bộ biên dịch: tải docs/report/ieee/ lên Overleaf, chọn compiler XeLaTeX.")
         return
     pdf = DOCS / "Report.pdf"
     shutil.copyfile(HERE / "main.pdf", pdf)

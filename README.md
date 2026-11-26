@@ -114,12 +114,18 @@ python -m unittest discover -s apps/tests
 
 ## Báo cáo
 
-[docs/Report.pdf](docs/Report.pdf) — báo cáo tiếng Việt theo mẫu IEEE conference (bản ghép đang chờ Chương 1–2 cuối). Nội dung gốc là [Chương 1](docs/report/chapter1.md), [Chương 2](docs/report/chapter2.md), [Chương 3](docs/report/chapter3.md); [docs/report/ieee/](docs/report/ieee/) chứa `main.tex`, `refs.bib` và LaTeX sinh từ Markdown. Sau khi sửa một chương:
+[docs/Report.pdf](docs/Report.pdf) — báo cáo tiếng Việt theo mẫu IEEE conference, gồm đối chiếu runtime Julia–SPMF và pilot độ dài giao dịch. Nội dung gốc là [Chương 1](docs/report/chapter1.md), [Chương 2](docs/report/chapter2.md), [Chương 3](docs/report/chapter3.md). [docs/report/ieee/](docs/report/ieee/) chứa `main.tex`, `refs.bib` và LaTeX sinh từ Markdown.
 
 ```text
-python docs/report/ieee/build.py             # cần pandoc >= 3 và tectonic (hoặc latexmk + xelatex)
+python docs/report/ieee/build.py             # cần pandoc >= 3 và tectonic, latexmk + xelatex hoặc xelatex + bibtex
 python docs/report/ieee/build.py --tex-only  # chỉ sinh .tex, biên dịch trên Overleaf bằng XeLaTeX
 python docs/report/ieee/figures.py           # vẽ lại hình Chương 3 từ output của notebook
 ```
 
 Trong Markdown, bảng có caption dạng `**Bảng II.** …` ngay trên bảng, hình có `**Hình 1.** …` ngay trên `![](figures/x.png)`; script đánh số lại toàn bài và dừng nếu bảng/hình chưa được dẫn trong văn bản hoặc trích dẫn thiếu trong `refs.bib`.
+
+Để vẽ lại các panel Chương 2, dùng Matplotlib và hai gói được mô tả trong [hồ sơ bàn giao](docs/validation/benchmark-handoff.md):
+
+```text
+python docs/report/ieee/benchmark_figures.py --comparison results/spmf-julia-handoff-20261122/results/figures/figure-data.csv --paired-runs results/benchmark-baseline-optimized-20261119/full-run
+```
