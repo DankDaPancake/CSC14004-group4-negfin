@@ -143,9 +143,11 @@ Timer monotonic bao gồm startup/JIT/đọc/mining/ghi/exit; không xóa filesy
 
 Pilot đạt 9/9 điều kiện, gồm toy, fixture rìa ngưỡng, năm mức dễ và hai output lớn. Với mỗi cấu hình chính, lần đầu so chính xác từng itemset/support sau canonical hóa và phát hiện duplicate; hai lần sau phải khớp count/digest. **35/35 cấu hình đạt**, không có missing/extra/support mismatch. Support tuyệt đối là `ceil(minsup_decimal × N)` chính xác. Fixture N=100/minsup=0.07 phát hiện SPMF double ceiling=8 thay vì7; mapping CLI được ghi rõ và so với output tính tay. **35 mức thực không cần đổi chuỗi minsup**. Xem [phụ lục mới](../validation/benchmark-spmf-julia-results.md) cho threshold từng điểm và bằng chứng.
 
-Provenance: git base `70ad97c`, working tree chưa commit; fingerprint `0490b0be675929b57d3f47a3e823c8ed1fb91e856b46127efc162077a98dddd4`. Source/config/hash, argv, logs và measurement/validation JSON nằm trong gói evidence riêng. Không gọi đây là revision benchmark sạch đã commit.
+Đợt đo dùng mã nguồn trên Git base `70ad97c` với các thay đổi chưa commit. Tiền tố fingerprint là `0490b0be6759`. Xem fingerprint đầy đủ, cấu hình, câu lệnh và bằng chứng xác minh trong [phụ lục thực nghiệm](../validation/benchmark-spmf-julia-results.md).
 
 ### 2.7.2. Kết quả
+
+Bảng V tổng hợp điểm có minsup thấp nhất của mỗi tập. Các điểm này minh họa chênh lệch thời gian và bộ nhớ khi cùng khai thác một tập kết quả.
 
 **Bảng V.** Mức minsup thấp nhất của mỗi dataset, median [min–max] ba lần cold mới. Bảng đầy đủ 35 điểm ở phụ lục; RSS là median MiB theo thứ tự SPMF / Julia.
 
@@ -171,15 +173,55 @@ SPMF có median whole-process wall và peak working set thấp hơn ở cả35 �
 
 ### 2.7.3. Hình, thảo luận và giới hạn
 
-Bộ hình local `results/spmf-julia-final-20261122/figures/` có 11 hình PNG/PDF kèm `captions.md` và `figure-data.csv`: 5 runtime–minsup (median và min–max), 5 itemsets–minsup (cùng output đã xác minh), 1 RSS tại mức thứ tư. Không đưa file sinh tự động vào Git; các đường dẫn này không có sẵn trong clone mới, nhận qua gói bàn giao local.
+Hình 1 và Hình 2 trình bày Chess và Mushroom, hai tập sinh nhiều mẫu nhất ở ngưỡng thấp nhất. Hình 3 và Hình 5 cho thấy Retail và T10I4D100K sinh ít mẫu hơn, còn Hình 4 mô tả Accidents. Khoảng min–max biểu thị dao động của ba lần chạy. Trục ngang liệt kê các mức minsup giảm dần tại các vị trí cách đều. Các panel (b) dùng một đường vì hai kết quả đã khớp từng itemset và support.
 
-- **Caption runtime:** “Median ba process cold mới SPMF NegFIN và Julia Optimized; whisker min–max; whole-process wall gồm startup/JIT/read/write; support giảm từ trái sang phải.”
-- **Caption itemsets:** “Số frequent itemset khớp giữa hai implementation sau so itemset/support lần đầu và count/digest ở hai lần sau; không phải số đo thời gian.”
-- **Caption RSS:** “Median native Windows peak working set của ba process tại minsup thứ tư; whisker min–max; Java heap không phải RSS.”
-- **Caption scalability cũ:** “Baseline–Optimized ngày19-11-2026, các prefix10/25/50/75/100%; không phải campaign SPMF mới, không ghép số đo giữa hai nguồn.”
+**Hình 1.** Chess theo minsup. (a) Median thời gian toàn tiến trình cold, thanh sai số min–max từ ba lần chạy. (b) Số itemset khớp.
 
-Chess/Mushroom là trường hợp output lớn: mức thấp nhất sinh37,28/22,84 triệu itemset. Chi phí format/ghi/duyệt output có thể ảnh hưởng mạnh; chưa đo riêng nên không quy kết toàn bộ chênh lệch cho mining. Retail/T10I4D100K sinh ít mẫu hơn nhưng RSS Julia tăng khi hạ support; đây chưa phải bằng chứng nhân quả về bitmap/heap. Các ý tưởng profiling heap, cấu trúc thưa, ghi theo lô và thí nghiệm chiều dài transaction **vẫn chờ quyết định của Đăng**, không được trình bày là tối ưu đã duyệt hoặc thực hiện.
+![](figures/benchmark-chess.png){.wide}
 
-Giữ nguyên trade-off T10I4D100K trong mục2.4: Optimized nhanh hơn Baseline nhưng RSS có thể cao hơn ở prefix75–100%. Kết quả SPMF mới không phủ định hoặc thay thế phép so cũ. Chưa đo scalability SPMF.
+**Hình 2.** Mushroom theo minsup. (a) Median thời gian toàn tiến trình cold, thanh sai số min–max từ ba lần chạy. (b) Số itemset khớp.
 
-Ba lần lặp trên một máy chưa đủ suy luận thống kê; riêng Chess0,3 Julia có khoảng36,420–57,130s, không loại mẫu chậm. Campaign bị ngắt do giới hạn harness2 giờ rồi tiếp tục từng cấu hình theo checkpoint, cùng fingerprint, không thay số đo đã lưu. Các pilot thất bại trước v3 được giữ riêng. Chưa xác minh mirror Hugging Face/Kaggle khớp byte/hash; giữ nguồn SPMF và manifest, không dùng dataset cùng tên nhưng khác encoding. Gói evidence không chứa original itemset output đã xóa sau validation; cần chạy lại để so byte một lần nữa. Xem [hướng dẫn bàn giao](../validation/benchmark-handoff.md); chưa gửi gói ra ngoài và chưa tạo PR.
+![](figures/benchmark-mushroom.png){.wide}
+
+**Hình 3.** Retail theo minsup. (a) Median thời gian toàn tiến trình cold, thanh sai số min–max từ ba lần chạy. (b) Số itemset khớp.
+
+![](figures/benchmark-retail.png){.wide}
+
+**Hình 4.** Accidents theo minsup. (a) Median thời gian toàn tiến trình cold, thanh sai số min–max từ ba lần chạy. (b) Số itemset khớp.
+
+![](figures/benchmark-accidents.png){.wide}
+
+**Hình 5.** T10I4D100K theo minsup. (a) Median thời gian toàn tiến trình cold, thanh sai số min–max từ ba lần chạy. (b) Số itemset khớp.
+
+![](figures/benchmark-t10i4d100k.png){.wide}
+
+Hình 6 trực quan hóa Bảng VI. Chênh lệch peak working set giữa SPMF và Julia Optimized ở mức minsup thứ tư lớn hơn trên Accidents và T10I4D100K so với Chess và Mushroom, dù hai tập sau có thể sinh nhiều mẫu hơn. Số mẫu đầu ra vì vậy chỉ là một trong các biến cần xem xét khi diễn giải mức dùng bộ nhớ.
+
+**Hình 6.** Median peak working set trên Windows ở mức minsup thứ tư. Thanh sai số biểu thị min–max của ba process mới. Chỉ số bao gồm bộ nhớ của runtime.
+
+![](figures/benchmark-rss.png){.wide}
+
+Ở ngưỡng thấp nhất, Chess sinh 37,28 triệu itemset và Mushroom sinh 22,84 triệu. Việc định dạng và ghi số lượng mẫu này có thể đóng góp đáng kể vào wall time. Thực nghiệm gộp các giai đoạn trong cùng phép đo nên chưa tách được thời gian khai thác. Trên Retail và T10I4D100K, peak working set của Julia tăng khi hạ minsup. Cần đo heap theo pha để xác định phần tăng có liên quan đến bitmap hoặc cấu trúc nào khác.
+
+Hình 7 minh họa phần scalability Baseline–Optimized ở Bảng IV. Với T10I4D100K, Optimized nhanh hơn ở cả năm phần tiền tố, còn peak RSS cao hơn ở 75% và 100%. Đợt đo SPMF–Julia dùng dữ liệu toàn tập. Các đường scalability đều là số liệu ngày 19-11.
+
+**Hình 7.** Scalability Baseline–Optimized trên Accidents và T10I4D100K. Mỗi điểm là median ba lần cold trên cùng phần tiền tố dữ liệu.
+
+![](figures/benchmark-scalability.png){.wide}
+
+Ba lần lặp trên một máy chỉ cho phép mô tả kết quả tại cấu hình đã đo. Chẳng hạn tại Chess, minsup 0,3, thời gian Julia dao động 36,420–57,130 giây và cả ba lần đều được giữ. Đợt đo tiếp tục từ checkpoint sau giới hạn hai giờ của harness, với cùng fingerprint và các phép đo cũ được giữ nguyên. Dữ liệu dùng snapshot tải từ SPMF theo manifest. Các bản sao Hugging Face hoặc Kaggle khớp checksum vẫn chưa được xác minh. Gói bàn giao lưu digest và bằng chứng kiểm tra output. [Hồ sơ bàn giao](../validation/benchmark-handoff.md)
+
+## 2.8. Ảnh hưởng của độ dài giao dịch
+
+Pilot dữ liệu tổng hợp giữ cố định 10.000 giao dịch, 512 ID có thể xuất hiện, seed 20261125 và minsup 0,008. Mỗi giao dịch được cắt thành các tiền tố dài 5, 10, 20 hoặc 40 của cùng một hoán vị ngẫu nhiên. Chạy Windows 11 trên Intel Core i7-11800H với Julia 1.12.0 một luồng. Đo warm count gồm chuẩn hóa, dựng cây, thu Nodeset và khai thác qua callback. Sau warm-up, mỗi biến thể chạy ba lần ở mỗi độ dài. Hai kết quả khớp từng itemset và support ở cả bốn độ dài.
+
+**Bảng VII.** Pilot độ dài giao dịch. Thời gian là median [min–max] của ba lượt warm count, đơn vị giây.
+
+| Item/giao dịch | Node BMC | Bản ghi quét | Itemset | Baseline (s) | Optimized (s) |
+|---:|---:|---:|---:|---:|---:|
+| 5 | 37.638 | 10.592.198 | 496 | 1,557 [1,481–1,631] | 0,343 [0,318–0,359] |
+| 10 | 86.572 | 24.000.798 | 512 | 3,843 [3,554–3,898] | 0,892 [0,795–0,977] |
+| 20 | 183.235 | 49.244.166 | 512 | 7,457 [7,214–7,621] | 1,646 [1,612–1,650] |
+| 40 | 378.929 | 100.444.039 | 1.365 | 17,211 [17,124–18,498] | 3,644 [3,553–3,681] |
+
+Bảng VII cho thấy khi tăng từ 10 lên 20 item/giao dịch, đầu ra giữ nguyên 512 mẫu, trong khi số node BMC tăng 2,12 lần, số bản ghi quét tăng 2,05 lần và thời gian tăng ở cả hai biến thể. Ở mức 40 item, số mẫu cũng tăng, nên mức tăng thời gian đi cùng cả sự thay đổi về cấu trúc đầu vào và lượng kết quả sinh ra. Pilot dùng một seed, một máy và chỉ mô tả phạm vi warm count. [Thiết lập và lệnh tái lập](../validation/transaction-length-pilot.md)
