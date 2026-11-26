@@ -21,7 +21,7 @@ Nguồn: [đề FIM chính thức](https://hcmus-cs-ta.github.io/lab-book/data-m
 
 - Một public GitHub repo với lịch sử commit minh bạch; link repo nộp trên Moodle.
 - README có thông tin thành viên, môi trường, hướng dẫn chạy, ví dụ, output test và link demo Colab công khai.
-- Notebook `notebooks/demo.ipynb` chạy sạch trên Colab; kernel Python có thể cài Julia và gọi Julia qua shell.
+- Notebook demo công khai chạy sạch trên Colab; kernel Python có thể cài Julia và gọi Julia qua shell. Theo hướng dẫn bổ sung của TA, dùng `notebooks/demo_colab.ipynb` cho Colab và `notebooks/demo_local.ipynb` cho local.
 - Báo cáo tiếng Việt, IEEE conference 10–15 trang không kể tham khảo/phụ lục, đặt tại `docs/Report.pdf`; có paper gốc và ít nhất 3 tài liệu liên quan khác.
 - Dữ liệu benchmark lớn có link Hugging Face/Kaggle công khai; mã chuẩn bị dữ liệu được notebook chứa hoặc import từ repo.
 - Không có yêu cầu Jupyter Book trong trang đề FIM đã kiểm tra; dùng một repo chứa source, notebook và báo cáo.
