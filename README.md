@@ -106,6 +106,8 @@ julia --startup-file=no --project=. bench/run.jl --all                     # m�
 
 Hai bản tải dữ liệu UCI theo [manifest](data/applications/manifest.toml), kiểm SHA-256 và gọi cùng CLI negFIN. Với tham số mặc định, toy có 15 itemset, retail có 2.026 itemset và 962 luật, splice có 280 itemset ở EI, 331 ở IE và 0 ở N.
 
+**Lần chạy Colab sau khi tách demo:** nhóm đã chạy đến cell cuối trên commit `1ff1cfa390248cdd3481f19fffc340c13cefc814`, với Julia 1.12.6 và variant `baseline`. Online Retail có 19.773 giao dịch, 2.026 itemset và 962 luật. Splice-junction có 280 itemset trên 767 giao dịch EI, 331 trên 768 giao dịch IE và 0 trên 1.655 giao dịch N.
+
 Bản demo gộp `notebooks/demo.ipynb` và [output Colab tại commit `7e3e9b0`](https://colab.research.google.com/drive/1pJe52lmSifBrkAPLPTveoU6NEuCgR2Aw?usp=sharing) được giữ để đối chiếu với lần chạy ghi trong báo cáo. Dùng hai notebook theo môi trường cho lần chạy mới.
 
 - Giỏ hàng — UCI Online Retail, luật kết hợp: [kết quả](docs/applications-retail-results.md)
