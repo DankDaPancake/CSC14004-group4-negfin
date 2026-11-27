@@ -120,8 +120,6 @@ python -m unittest discover -s apps/tests
 
 ## Báo cáo
 
-Xem [tài liệu bàn giao bài nộp](docs/submission-handoff.md) để kiểm tra sản phẩm, nguồn dữ liệu và các bước chốt trước khi nộp.
-
 [docs/Report.pdf](docs/Report.pdf) — báo cáo tiếng Việt theo mẫu IEEE conference, gồm đối chiếu runtime Julia–SPMF và pilot độ dài giao dịch. Nội dung gốc là [Chương 1](docs/report/chapter1.md), [Chương 2](docs/report/chapter2.md), [Chương 3](docs/report/chapter3.md). [docs/report/ieee/](docs/report/ieee/) chứa `main.tex`, `refs.bib` và LaTeX sinh từ Markdown.
 
 ```text
