@@ -98,11 +98,15 @@ julia --startup-file=no --project=. bench/run.jl --all                     # m�
 
 ## Hai ứng dụng và demo Colab
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/DankDaPancake/CSC14004-group4-negfin/blob/main/notebooks/demo.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/DankDaPancake/CSC14004-group4-negfin/blob/main/notebooks/demo_colab.ipynb)
 
-**Demo Colab công khai (đã chạy, có output):** https://colab.research.google.com/drive/1pJe52lmSifBrkAPLPTveoU6NEuCgR2Aw?usp=sharing — Run all trên runtime Colab mới ở commit `7e3e9b0`, Julia 1.12.6 có sẵn của Colab; kết quả: retail 2.026 itemset, 962 luật; splice EI 280, IE 331, N 0 itemset.
+**Demo Colab công khai:** mở [demo_colab.ipynb](notebooks/demo_colab.ipynb) bằng nút trên, rồi chọn **Runtime → Run all**. Notebook lấy mã nguồn theo `REF` và chuẩn bị Julia nếu runtime chưa có sẵn.
 
-[notebooks/demo.ipynb](notebooks/demo.ipynb) dùng `julia` có sẵn hoặc tự cài Julia 1.12.0 (kiểm SHA-256), clone repo ở `REF`, tải dữ liệu UCI theo [manifest](data/applications/manifest.toml) và chạy CLI negFIN của nhóm cho cả hai ứng dụng; Python chỉ tiền xử lý/hậu xử lý. Mở bằng nút trên rồi **Runtime → Run all**. Notebook cũng chạy được trên máy local khi mở trong thư mục repo (cần Julia trong PATH, Python ≥ 3.11 với `pandas`, `openpyxl`).
+**Demo local:** mở [demo_local.ipynb](notebooks/demo_local.ipynb) từ checkout với kernel Python ≥ 3.11, cài `pandas` và `openpyxl`, và dùng Julia ≥ 1.9 từ PATH hoặc biến `NEGFIN_JULIA` trỏ tới executable. Chọn **Run All** để chạy trên checkout đang mở.
+
+Hai bản tải dữ liệu UCI theo [manifest](data/applications/manifest.toml), kiểm SHA-256 và gọi cùng CLI negFIN. Với tham số mặc định, toy có 15 itemset, retail có 2.026 itemset và 962 luật, splice có 280 itemset ở EI, 331 ở IE và 0 ở N.
+
+Bản demo gộp `notebooks/demo.ipynb` và [output Colab tại commit `7e3e9b0`](https://colab.research.google.com/drive/1pJe52lmSifBrkAPLPTveoU6NEuCgR2Aw?usp=sharing) được giữ để đối chiếu với lần chạy ghi trong báo cáo. Dùng hai notebook theo môi trường cho lần chạy mới.
 
 - Giỏ hàng — UCI Online Retail, luật kết hợp: [kết quả](docs/applications-retail-results.md)
 - Sinh học — UCI Splice-junction, pattern vị trí–base theo lớp: [kết quả](docs/applications-splice-results.md)
